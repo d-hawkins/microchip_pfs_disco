@@ -1,0 +1,357 @@
+% =============================================================================
+\section{Example 3: Linux Boot}
+% =============================================================================
+\label{sec:linux_boot}
+
+This section documents the Microchip resources that describe how to configure
+the Discovery Kit to boot Linux.
+%
+The PolarFire SoC Discovery Kit Linux image requires that the kit be programmed
+with both the Hardware Reference Design and Hart Software Services (HSS).
+The HSS is a first-stage bootloader that is used to load U-boot from SD card,
+and then U-boot boots Linux.
+
+% -----------------------------------------------------------------------------
+\subsection{Hardware Reference Design and HSS}
+% -----------------------------------------------------------------------------
+
+Download the Hardware Reference Design and HSS release:
+%
+\begin{enumerate}
+% --------------------------------------
+\item \textbf{Download the Release File}
+% --------------------------------------
+%
+\begin{itemize}
+\item
+\href{https://www.microchip.com/en-us/development-tool/mpfs-disco-kit}
+{Microchip Discovery Kit web site}
+
+The PolarFire SoC \textbf{Discovery Kit Reference Design} links to $dots$
+
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design}
+{PolarFire SoC Discovery Kit Reference Design}
+
+The releases link of this page $\dots$
+
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design/releases/tag/v2025.07}
+{Discovery Kit Reference Design Release v2025.07}
+
+Contains the release zip file $\dots$
+
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design/releases/download/v2025.07/MPFS_DISCOVERY_KIT_2025_07.zip}
+{MPFS\_DISCOVERY\_KIT\_2025\_07.zip}
+\end{itemize}
+
+% --------------------------------------
+\item \textbf{Extract the release files}
+% --------------------------------------
+%
+\begin{itemize}
+\item Download the zip file to a temporary directory, eg.,
+
+\begin{verbatim}
+C:\github\microchip_pfs_disco\linux
+\end{verbatim}
+
+\item Unzip and inspect the zip file contents (eg., using WSL):
+
+\begin{verbatim}
+$ ls -1 MPFS_DISCOVERY_KIT_2025_07
+MPFS_DISCOVERY_KIT_2025_07.cfg
+MPFS_DISCOVERY_KIT_2025_07.digest
+MPFS_DISCOVERY_KIT_2025_07.job
+MPFS_DISCOVERY_KIT_2025_07.xml
+\end{verbatim}
+%$
+The FlashPro Express programming file is the .job file.
+
+The .digest contains the PolarFire SoC image signatures.
+\end{itemize}
+
+% --------------------------------------
+\item \textbf{Program the Discovery Kit}
+% --------------------------------------
+%
+\begin{itemize}
+\item Start FlashPro Express, create a new job file, and program the kit (eg., see Section~\ref{sec:factory_restore}).
+\item Compare the digests reported by FlashPro with the contents of the .digest file, and confirm they match.
+\item (Optional) power-cycle the board and verify the image.
+\end{itemize}
+
+\newpage
+% --------------------------------------
+\item \textbf{HSS Console Test}
+% --------------------------------------
+%
+\begin{itemize}
+\item Power the Discovery Kit
+\item Connect to MMUART\_1 using a serial terminal console at 115200 baud, 8N1\newline (eg., TeraTerm)
+\item Press SW2 (the switch furthest from the edge of the board)
+\item The console will display the HSS boot messages
+
+The HSS boot messages end with:
+%
+\begin{verbatim}
+[0.945592] startup_service :: [init] -> [boot]
+[0.951702] ipi_poll_service :: [Init] -> [Monitoring]
+Press a key to enter CLI, ESC to skip
+Timeout in 1 second
+..
+[4.208612] CLI boot interrupt timeout
+[4.213577] loop 315165 took 606530793 ticks (max 606530793 ticks)
+[4.221502] Initializing Boot Image ...
+[4.226562] Trying to get boot image via MMC ...
+[4.232482] Attempting to select SDCARD ... Failed
+\end{verbatim}
+%
+The SD card failure message is expected, since an SD card is not installed.
+
+The console message shows how to access the HSS command-line interface (CLI).
+
+\item Press SW2 and then hit enter in the HSS console
+
+\begin{verbatim}
+Press a key to enter CLI, ESC to skip
+Timeout in 1 second
+.[3.411049] Character 13 pressed
+
+[3.415632] Type HELP for list of commands
+>> help
+Supported commands:
+YMODEM BOOT RESET HELP VERSION UPTIME DEBUG MEMTEST QSPI
+EMMC MMC SDCARD PAYLOAD SPI ECC
+\end{verbatim}
+%
+This confirms that the Discovery Kit is ready to boot Linux.
+\end{itemize}
+\end{enumerate}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Linux SD Card Image}
+% -----------------------------------------------------------------------------
+
+Download the Linux SD Card Image for the Yocto BSP:
+%
+\begin{enumerate}
+% --------------------------------------
+\item \textbf{Download the SD card image}
+% --------------------------------------
+%
+\begin{itemize}
+\item
+\href{https://www.microchip.com/en-us/development-tool/mpfs-disco-kit}
+{Microchip Discovery Kit web site}
+
+The \textbf{Running Linux} section on this page links to the Yocto Linux
+BSP $\dots$
+
+\item
+\href{https://github.com/polarfire-soc/meta-polarfire-soc-yocto-bsp}
+{Microchip PolarFire SoC Yocto BSP}
+
+This repository is an archive.
+
+The repo README.md links to the new Yocto repo $\dots$
+
+\item
+\href{https://github.com/linux4microchip/meta-mchp}
+{Microchip Yocto Project BSP}
+
+The releases link of this page $\dots$
+
+\item
+\href{https://github.com/linux4microchip/meta-mchp/releases/tag/linux4microchip%2Bfpga-2025.07}
+{linux4microchip+fpga-2025.07}
+
+Contains the Linux SD card image $\dots$
+
+\item
+\href{https://github.com/linux4microchip/meta-mchp/releases/download/linux4microchip+fpga-2025.07/mchp-base-image-mpfs-disco-kit.rootfs-20250725104508.wic.gz}
+{mchp-base-image-mpfs-disco-kit.rootfs-20250725104508.wic.gz}
+\end{itemize}
+%
+% --------------------------------------
+\item \textbf{Program the SD card image}
+% --------------------------------------
+%
+\begin{itemize}
+\item The
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/reference-designs-fpga-and-development-kits/mpfs-discovery-kit-embedded-software-user-guide.md}
+{Discovery Kit Embedded Software User Guide} links to
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/reference-designs-fpga-and-development-kits/updating-linux-in-mpfs-kit.md}
+{Updating linux in MPFS kit}, and this page has QSPI, eMMC, and SD card programming instructions.
+
+\item Download and setup the SD card imaging tool: \href{https://bztsrc.gitlab.io/usbimager}{USBImager}
+
+\item Follow the
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/reference-designs-fpga-and-development-kits/updating-linux-in-mpfs-kit.md#sd-card-content-update-procedure}
+{SD Card content update procedure}
+instructions.
+
+\item The .wic.gz SD card image needs to be uncompressed prior to writing to SD card.
+
+\item The Linux image was programmed to a 64GB SanDisk SDXC card.
+
+Windows \emph{Disk Management} showed:
+\begin{itemize}
+\item boot (D:) 64MB (Primary Partition)
+\item 8MB (Primary Partition)
+\item 439MB (Primary Partition)
+\item 58.98GB (Unallocated)
+\end{itemize}
+%
+\end{itemize}
+\end{enumerate}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Boot Linux}
+% -----------------------------------------------------------------------------
+
+\begin{itemize}
+\item Power the Discovery Kit
+\item Connect to MMUART\_1 using a serial terminal console at 115200 baud, 8N1
+\item Connect to MMUART\_4 using a serial terminal console at 115200 baud, 8N1
+\item Press SW2 (the switch furthest from the edge of the board)
+\item The first console will display the HSS boot messages
+\item The second console will display U-Boot and Linux boot messages
+\item Login with the user name \verb+root+ (no password is required)
+\item Example console output:
+
+\begin{verbatim}
+OpenEmbedded nodistro.0 mpfs-disco-kit ttyS1
+
+mpfs-disco-kit login: root
+This is version v2025.07 of the Polarfire SoC Yocto BSP.
+
+Updated images and documentation are available at:
+        https://github.com/polarfire-soc/
+root@mpfs-disco-kit:~# uname -a
+Linux mpfs-disco-kit 6.12.22-linux4microchip+fpga-2025.07-g032a7095303a
+  #1 SMP Tue Jul 22 10:04:20 UTC 2025 riscv64 GNU/Linux
+\end{verbatim}
+%
+The command \verb+cat /proc/cpuinfo+ will show the properties of
+the four U51 processors. The properties of the first two are:
+%
+\begin{verbatim}
+root@mpfs-disco-kit:~# cat /proc/cpuinfo
+processor       : 0
+hart            : 1
+isa             : rv64imafdc_zicntr_zicsr_zifencei_zihpm_zca_zcd
+mmu             : sv39
+uarch           : sifive,u54-mc
+mvendorid       : 0x1cf
+marchid         : 0x1
+mimpid          : 0x0
+hart isa        : rv64imafdc_zicntr_zicsr_zifencei_zihpm_zca_zcd
+
+processor       : 1
+hart            : 2
+isa             : rv64imafdc_zicntr_zicsr_zifencei_zihpm_zca_zcd
+mmu             : sv39
+uarch           : sifive,u54-mc
+mvendorid       : 0x1cf
+marchid         : 0x1
+mimpid          : 0x0
+hart isa        : rv64imafdc_zicntr_zicsr_zifencei_zihpm_zca_zcd
+\end{verbatim}
+
+\end{itemize}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{U-Boot Blinky LED}
+% -----------------------------------------------------------------------------
+
+\begin{enumerate}
+% --------------------------------------
+\item \textbf{Access the U-Boot Console}
+% --------------------------------------
+%
+\begin{itemize}
+\item Shutdown Linux:
+\begin{verbatim}
+root@mpfs-disco-kit:~# shutdown -h now
+\end{verbatim}
+\item Press SW2 to reboot
+\item Hit enter in the second console to interrupt U-Boot
+\item Example console output:
+\begin{verbatim}
+U-Boot 2023.07.02-linux4microchip+fpga-2025.07 (Jul 22 2025 - 09:10:12 +0000)
+
+CPU:   rv64imafdc
+Model: Microchip PolarFire-SoC Discovery Kit
+DRAM:  1 GiB (effective 1.8 GiB)
+Core:  50 devices, 12 uclasses, devicetree: separate
+MMC:   mmc@20008000: 0
+Loading Environment from FAT... OK
+In:    serial@20106000
+Out:   serial@20106000
+Err:   serial@20106000
+Net:   eth0: ethernet@20110000
+Hit any key to stop autoboot:  0
+RISC-V #
+\end{verbatim}
+\end{itemize}
+%
+% --------------------------------------
+\item \textbf{Toggle LED8}
+% --------------------------------------
+%
+\begin{itemize}
+\item Enable LED8 output driver
+\begin{verbatim}
+# mw.l 20121024 05
+\end{verbatim}
+%
+\item Toggle LED8
+\begin{verbatim}
+# mw.l 20121088 0200
+# mw.l 20121088 0
+\end{verbatim}
+\end{itemize}
+%
+% --------------------------------------
+\item \textbf{Toggle LED[7:1]}
+% --------------------------------------
+%
+\begin{itemize}
+\item Toggle LED1
+\begin{verbatim}
+# mw.l 20122088 020000
+# mw.l 20122088 0
+\end{verbatim}
+%
+\item Toggle LED[7:1]
+\begin{verbatim}
+# mw.l 20122088 FE0000
+# mw.l 20122088 0
+\end{verbatim}
+\end{itemize}
+%
+% --------------------------------------
+\item \textbf{Turn on all the yellow LEDs}
+% --------------------------------------
+%
+\begin{verbatim}
+# mw.l 20121088 0
+# mw.l 20122088 AA0000
+\end{verbatim}
+%
+% --------------------------------------
+\item \textbf{Turn on all the red LEDs}
+% --------------------------------------
+%
+\begin{verbatim}
+# mw.l 20121088 0200
+# mw.l 20122088 540000
+\end{verbatim}
+%
+%
+\end{enumerate}

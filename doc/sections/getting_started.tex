@@ -311,9 +311,12 @@ examples.
 \subsection{Linux}
 % -----------------------------------------------------------------------------
 
+Section~\ref{sec:linux_boot} provides the procedure to program the Discovery Kit,
+create an SD card, and boot Linux.
+
+\vskip5mm
 \noindent\textcolor{red}{TODO:}
 \begin{itemize}
-\item Create a micro-SD card and boot Linux.
 \item Describe the boot sequence:
 \begin{itemize}
 \item HSS = First-stage boot-loader
@@ -322,9 +325,10 @@ examples.
 \end{itemize}
 \item Blink the LEDs:
 \begin{itemize}
-\item Using HSS commands
-\item Using U-Boot commands
-\item Using /dev/mem and a Linux application
+\item Using HSS commands (are there memory commands?)
+\item Using U-Boot commands (see Section~\ref{sec:linux_boot})
+\item Using /dev/mem and a Linux application\newline
+(the \verb+devmem+ tool does not exist in the default Yocto image)
 \end{itemize}
 \end{itemize}
 
