@@ -1,0 +1,47 @@
+LED delays minimum
+------------------
+
+          From       To   Delay (ns)   Slack (ns)   Arrival (ns)   Required (ns)   Clock to Out (ns) 
+  ------------   ------   ----------   ----------   ------------   -------------   ----------------- 
+  led_r[0]:CLK   led[0]        3.277        0.129          4.929           4.800               4.929 
+  led_r[1]:CLK   led[1]        3.226        0.077          4.877           4.800               4.877 
+  led_r[2]:CLK   led[2]        3.279        0.129          4.929           4.800               4.929 
+  led_r[3]:CLK   led[3]        3.277        0.127          4.927           4.800               4.927 
+  led_r[4]:CLK   led[4]        3.226        0.081          4.881           4.800               4.881 
+  led_r[5]:CLK   led[5]        3.239        0.090          4.890           4.800               4.890 
+  led_r[6]:CLK   led[6]        3.226        0.077          4.877           4.800               4.877 
+
+LED delays maximum
+------------------
+
+          From       To   Delay (ns)   Slack (ns)   Arrival (ns)   Required (ns)   Clock to Out (ns) 
+  ------------   ------   ----------   ----------   ------------   -------------   ----------------- 
+  led_r[0]:CLK   led[0]        4.958        0.112          7.688           7.800               7.688 
+  led_r[1]:CLK   led[1]        4.875        0.198          7.602           7.800               7.602 
+  led_r[2]:CLK   led[2]        4.977        0.094          7.706           7.800               7.706 
+  led_r[3]:CLK   led[3]        4.958        0.113          7.687           7.800               7.687 
+  led_r[4]:CLK   led[4]        4.875        0.191          7.609           7.800               7.609 
+  led_r[5]:CLK   led[5]        4.888        0.184          7.616           7.800               7.616 
+  led_r[6]:CLK   led[6]        4.875        0.197          7.603           7.800               7.603 
+
+LED clock-to-output delays
+--------------------------
+
+Port               Min        Max
+-----------     ------     ------
+led[0]           4.929      7.688
+led[1]           4.877      7.602
+led[2]           4.929      7.706
+led[3]           4.927      7.687
+led[4]           4.881      7.609
+led[5]           4.890      7.616
+led[6]           4.877      7.603
+
+LED clock-to-output delays summary
+----------------------------------
+
+Data: tco_min(min, max, delta) = (4.877, 4.929, 0.052)
+Data: tco_max(min, max, delta) = (7.602, 7.706, 0.104)
+
+PASS: There is positive timing slack.
+

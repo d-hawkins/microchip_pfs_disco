@@ -1,0 +1,91 @@
+# -----------------------------------------------------------------------------
+# pfs_disco_fp.pdc
+#
+# 7/25/2025 D. W. Hawkins (dwh@caltech.edu)
+#
+# Physical Design Constraints (PDC) floorplan constraints.
+#
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Parameters
+# -----------------------------------------------------------------------------
+#
+# LED output registers
+# * Enabling the I/O registers requires the use of the .NDC file
+set led_output_reg 1
+
+# Use floorplan regions (for the blinky component)
+set use_regions 1
+
+# Use TMR
+set use_tmr 0
+
+# -----------------------------------------------------------------------------
+# Clock Global Buffer
+# -----------------------------------------------------------------------------
+#
+set_location -inst_name u2/U_GB -fixed true -x 1164 -y 0
+
+# -----------------------------------------------------------------------------
+# Reset Global Buffer
+# -----------------------------------------------------------------------------
+#
+set_location -inst_name u4 -fixed true -x 1165 -y 0
+
+# -----------------------------------------------------------------------------
+# Reset Synchronizer Registers
+# -----------------------------------------------------------------------------
+#
+# Configured for PIPELINE = 4
+set_location -inst_name u3/d_meta\[0\] -fixed true -x 1164 -y 7
+set_location -inst_name u3/d_meta\[1\] -fixed true -x 1165 -y 7
+set_location -inst_name u3/d_meta\[2\] -fixed true -x 1166 -y 7
+set_location -inst_name u3/d_meta\[3\] -fixed true -x 1167 -y 7
+
+# -----------------------------------------------------------------------------
+# LED Output Registers
+# -----------------------------------------------------------------------------
+#
+if {$led_output_reg == 0} {
+	set_location -inst_name led_r\[0\] -fixed true -x 2016 -y 157
+	set_location -inst_name led_r\[1\] -fixed true -x 1764 -y 214
+	set_location -inst_name led_r\[2\] -fixed true -x 2027 -y 130
+	set_location -inst_name led_r\[3\] -fixed true -x 2016 -y 130
+	set_location -inst_name led_r\[4\] -fixed true -x 1956 -y 214
+	set_location -inst_name led_r\[5\] -fixed true -x 1752 -y 214
+	set_location -inst_name led_r\[6\] -fixed true -x 1812 -y 214
+}
+
+# -----------------------------------------------------------------------------
+# Blinky Floorplan Region
+# -----------------------------------------------------------------------------
+#
+if {$use_regions == 1} {
+	if {$use_tmr == 0} {
+
+		# User-defined Region (same as BlinkyTMR2 below)
+		define_region -region_name BlinkyRegion \
+			-type inclusive -color 2147442270 -x1 1164 -y1 12 -x2 1199 -y2 17
+
+		# Place the Blinky instance in the region
+		assign_region -region_name BlinkyRegion -inst_name u5
+
+	} else {
+
+		# User-defined Regions
+		define_region -region_name BlinkyTMR0 \
+			-type inclusive -color 2147442270 -x1 1164 -y1 24 -x2 1199 -y2 29
+		define_region -region_name BlinkyTMR1 \
+			-type inclusive -color 2147442270 -x1 1164 -y1 18 -x2 1199 -y2 23
+		define_region -region_name BlinkyTMR2 \
+			-type inclusive -color 2147442270 -x1 1164 -y1 12 -x2 1199 -y2 17
+
+		# Place the Blinky TMR instances in each region
+		assign_region -region_name BlinkyTMR0 -inst_name u5/TMR0
+		assign_region -region_name BlinkyTMR1 -inst_name u5/TMR1
+		assign_region -region_name BlinkyTMR2 -inst_name u5/TMR2
+
+	}
+}
+

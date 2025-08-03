@@ -1,0 +1,46 @@
+# -----------------------------------------------------------------------------
+# pfs_disco.ndc
+#
+# 7/25/2025 D. W. Hawkins (dwh@caltech.edu)
+#
+# Netlist Design Constraints (NDC).
+#
+# -----------------------------------------------------------------------------
+# Notes
+# -----
+#
+# 1. set_ioff device-specific syntax
+#
+#    The set_ioff syntax for IGLOO2 and SmartFusion2 is different than for
+#    PolarFire SoC. IGLOO2 and SmartFusion do not use -port_name and the
+#    values for -out_reg are yes and no, rather than 0/false or 1/true.
+#
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Parameters
+# -----------------------------------------------------------------------------
+#
+# LED output registers
+set led_output_reg 1
+
+# -----------------------------------------------------------------------------
+# LEDs
+# -----------------------------------------------------------------------------
+#
+# Place the LED output registers in the fabric or I/O registers.
+#
+# ChipPlanner Expanded path view shows the register components are:
+#
+#    ---------------------------------
+#   | -OUT_REG | Register | Component |
+#   |----------|----------|-----------|
+#   |     0    |  Fabric  |  SLE      |
+#   |     1    |  I/O     |  IOREG    |
+#    ---------------------------------
+#
+if {$led_output_reg == 1} {
+	for {set i 0} {$i < 7} {incr i} {
+		set_ioff -port_name led\[$i\] -OUT_REG 1
+	}
+}

@@ -1,0 +1,121 @@
+# -----------------------------------------------------------------------------
+# pfs_disco_io.pdc
+#
+# 7/25/2025 D. W. Hawkins (dwh@caltech.edu)
+#
+# Physical Design Constraints (PDC) I/O constraints.
+#
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Parameters
+# -----------------------------------------------------------------------------
+#
+# LED outputs
+set led_drive 4
+set led_load  5
+
+# -----------------------------------------------------------------------------
+# Asynchronous Reset
+# -----------------------------------------------------------------------------
+#
+# Push button reset
+# * T19 SWITCH1
+# * U18 SWITCH2
+# * Bank 0 HSIO pin at 1.8V
+# * SWITCH1 RC time-constant is 1ms. Turn on Schmitt trigger input.
+set_io \
+	-port_name arst_n   \
+	-pin_name T19       \
+	-DIRECTION INPUT    \
+	-io_std LVCMOS18    \
+	-RES_PULL Up        \
+	-SCHMITT_TRIGGER ON \
+	-fixed true
+
+# -----------------------------------------------------------------------------
+# Clock
+# -----------------------------------------------------------------------------
+#
+# 50MHz oscillator
+# * Bank 0 HSIO pin at 1.8V
+set_io \
+	-port_name clk_50mhz \
+	-pin_name R18        \
+	-DIRECTION INPUT     \
+	-io_std LVCMOS18     \
+	-fixed true
+
+# -----------------------------------------------------------------------------
+# LEDs
+# -----------------------------------------------------------------------------
+#
+# * Schematic nets LED1 to LED7 connect to HSIO pins
+# * Schematic net LED8 is driven by an MSSIO pin
+# * Bank 0 HSIO pins at 1.8V
+#
+set pin_list [list T18 V17 U20 U21 AA18 V16 U15]
+for {set i 0} {$i < 7} {incr i} {
+	set pin [lindex $pin_list $i]
+	set_io \
+		-port_name led\[$i\]  \
+		-pin_name $pin        \
+		-DIRECTION OUTPUT     \
+		-io_std LVCMOS18      \
+		-OUT_DRIVE $led_drive \
+		-SLEW OFF             \
+		-OUT_LOAD $led_load   \
+		-fixed true
+}
+
+# -----------------------------------------------------------------------------
+# UART
+# -----------------------------------------------------------------------------
+#
+# FTDI-to-FPGA connections
+# * W21 = FTDI_UART_D_TXD (FTDI output, FPGA input)
+# * Y21 = FTDI_UART_D_RXD (FTDI input, FPGA output)
+# * Bank 0 HSIO pins at 1.8V
+#
+
+# FPGA UART RX
+set_io \
+	-port_name uart_rx \
+	-pin_name W21      \
+	-DIRECTION INPUT   \
+	-io_std LVCMOS18   \
+	-RES_PULL Up       \
+	-fixed true
+
+# FPGA UART TX
+set_io \
+	-port_name uart_tx \
+	-pin_name Y21      \
+	-DIRECTION OUTPUT  \
+	-io_std LVCMOS18   \
+	-OUT_DRIVE 4       \
+	-SLEW OFF          \
+	-OUT_LOAD 5        \
+	-fixed true
+
+# -----------------------------------------------------------------------------
+# Probe
+# -----------------------------------------------------------------------------
+#
+# * Raspberry Pi header, outer edge pins
+# * Pins 3, 5, 7, 11
+# * Bank 1 GPIO pins at 3.3V
+#
+set pin_list [list E18 F18 E12 G18]
+for {set i 0} {$i < 4} {incr i} {
+	set pin [lindex $pin_list $i]
+	set_io \
+		-port_name probe\[$i\] \
+		-pin_name $pin         \
+		-DIRECTION OUTPUT      \
+		-io_std LVCMOS33       \
+		-OUT_DRIVE 8           \
+		-SLEW ON               \
+		-OUT_LOAD 5            \
+		-fixed true
+}
