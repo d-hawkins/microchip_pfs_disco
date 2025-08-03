@@ -101,7 +101,7 @@ module pfs_disco (
 		.autocalib_done             (),
 		.bank_0_calib_status        (bank_0_calib_status),
 		.bank_1_calib_status        ()
-    );
+	);
 
 	// ------------------------------------------------------------------------
 	// Global Clock Buffer
