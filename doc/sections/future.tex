@@ -1,0 +1,71 @@
+% =============================================================================
+\section{Future Designs}
+% =============================================================================
+\label{sec:future}
+
+The following are a list of ideas for future designs:
+%
+\begin{enumerate}
+\item \textbf{Boot Linux}
+
+Boot Linux.
+
+\item \textbf{Boot vectors}
+
+Write assembly code for the boot vector to blink the LEDs.
+
+\item \textbf{HSS Payload}
+
+Use the HSS to boot a user application, eg., as a first-stage bootloader.
+
+\item \textbf{FIC AXI4 and AHB BFMs}
+
+Demonstrate the use of the simulation BFMs, eg., start with the reference
+hardware design, generate the BFM\_SIMULATION version, and blink the LEDs.
+
+\item \textbf{AN5165: FIR Filter design}
+
+Create a bit-true model of the digital filter and the FFT logic.
+Use the simulation to understand the UART protocol.
+Reimplement the simulation using CocoTB.
+
+For the bit-true model, investigate the bit depths used in the design:
+%
+\begin{itemize}
+\item 16-bits data times 16-bits coeffs = 32-bit products
+\item 127 programmable coefficients have log2(127) = 7-bits growth
+\item FIR filter worst-case output bit width is 32+7 = 39-bits
+\item The FIR code show the output connects to FIRO[29:14], so that is
+only 16-bits, but it is not the worst-case 16-bits.
+\item Will this FIR saturate or wrap?
+\item Is the FIR GUI scaling the coefficients and input signal to
+accommodate the known bit-widths? (Review the text input and output view)
+\end{itemize}
+
+\item \textbf{FIR Filter design with RISC-V interface}
+
+Reimplement the FIR filter design:
+\begin{itemize}
+\item AXI4-Stream interface FIR filter
+\item AXI4-Stream interface FFT
+\item AXI4-Stream FIFOs connecting components
+\item Memory mapped FIFOs for input and output data
+\item AXI4 or AHB control registers interface
+\item DMA controller for input and output buffer loading and unloading
+\end{itemize}
+%
+Implement the AXI4 or AHB control interface using the MSS BFMs.
+Also implement the control using a UART-to-AXI4 or UART-to-AHB bridge.
+That way this design could also work on the FPGA only kits.
+
+\item \textbf{Heater}
+
+Does the board have current sensors? How about the Video Kit?
+
+Buy a USB-C interface/bridge that measures current. I would like the USB power
+monitor to have a USB-C interface and I would like to be able to read the
+measurements over USB (not just an LCD screen on the unit), so that I can
+plot a power time-series.
+
+\end{enumerate}
+

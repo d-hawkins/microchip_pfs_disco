@@ -1,0 +1,928 @@
+% =============================================================================
+\section{Example 1: Fabric-only Blinky LEDs}
+% =============================================================================
+\label{sec:fabric_blinky}
+
+% -----------------------------------------------------------------------------
+% Libero GUI
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=\textwidth]
+    {figures/ex1_fabric_blinky.pdf}
+  \end{center}
+  \caption{Fabric-only Blinky LEDs block diagram.}
+  \label{fig:ex1_diagram}
+\end{figure}
+% -----------------------------------------------------------------------------
+
+Figure~\ref{fig:ex1_diagram} shows a block diagram of the fabric-only Blinky
+LEDs design. This section demonstrates how to use the Libero SoC GUI to manually
+create a project, create physical design constraints, and timing constraints,
+and then how to reproduce the design using scripts.
+%
+Table~\ref{tab:ex1_source} shows the source and scripts described in this
+section.
+
+% -----------------------------------------------------------------------------
+% Project files
+% -----------------------------------------------------------------------------
+%
+\begin{table}[b]
+\caption{Discovery Kit fabric-only blinky LEDs project source.}
+\label{tab:ex1_source}
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Filename & Description\\
+\hline\hline
+&\\
+\texttt{designs/fabric\_blinky}              & Design directory\\
+\quad\texttt{src/pfs\_disco.sv}              & Top-level design\\
+\quad\texttt{scripts/pfs\_disco.sdc}         & Timing constraints\\
+\quad\texttt{scripts/pfs\_disco\_io.pdc}     & Pin constraints\\
+\quad\texttt{scripts/pfs\_disco\_fp.pdc}     & Floorplan constraints\\
+\quad\texttt{scripts/pfs\_disco.ndc}         & Output register constraints\\
+\quad\texttt{scripts/pfs\_disco.fdc}         & TMR constraints\\
+\quad\texttt{scripts/libero.tcl}             & Libero build script\\
+\quad\texttt{scripts/synplify.tcl}           & Synplify build script\\
+&\\
+\texttt{ip}                                    & Common IP directory\\
+\quad\texttt{blinky/src/blinky.sv}             & Blinky LED design\\
+\quad\texttt{cdc\_sync\_bit/src/cdc\_sync\_bit.sv}         & Synchronizer\\
+\quad\texttt{pfs\_init\_monitor/src/pfs\_init\_monitor.sv} & PFS\_INIT\_MONITOR wrapper\\
+&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Libero Manual Project Creation}
+% -----------------------------------------------------------------------------
+
+Create the Libero SoC project as follows:
+%
+\begin{enumerate}
+\item Start \emph{Libero SoC 2025.1}
+\item Select \emph{Project$\rightarrow$New Project}
+\item \textbf{Project details}
+
+Configure the project name and location, eg.,
+\begin{itemize}
+\item Project name: \verb+pfs_disco+
+\item Project location:
+\verb+$TUTORIAL/designs/fabric_blinky/build+%$
+
+where \verb+TUTORIAL+ is the path to the tutorial source, eg.,\newline
+\verb+TUTORIAL = C:/github/microchip_pfs_disco+.
+\item Click \emph{Next}
+\end{itemize}
+The Libero project is created in directory \verb+build/pfs_disco+. The scripted
+flow uses the directory name \verb+build/libero+.
+%
+\item \textbf{Device selection}
+
+Select the PolarFire Discovery device:
+\begin{itemize}
+\item Change the part filter family to PolarFireSoC
+\item Change the die to MPFS095T
+\item Change the package to FCSG325
+\item Select part number MPFS095T-1FCSG325E (-1 speed grade)
+\item Click \emph{Next}
+\end{itemize}
+%
+\item \textbf{Device settings}
+\begin{itemize}
+\item The default settings are acceptable, i.e.,
+\item Core Voltage: 1.0
+\item Default I/O technology: LVCMOS 1.8V
+\item (Checked) Reserve pins for probes
+\item (Unchecked) System controller suspend mode
+\item Click \emph{Next}
+\end{itemize}
+%
+\newpage
+\item \textbf{Add HDL source files}
+\begin{itemize}
+\item Click on the \emph{Link File} button and link the SystemVerilog files:
+\begin{itemize}
+\item \verb+$TUTORIAL/designs/fabric_blinky/src/pfs_disco.sv+
+%$
+\item \verb+$TUTORIAL/ip/blinky/src/blinky.sv+
+%$
+\item \verb+$TUTORIAL/ip/cdc_sync_bit/src/cdc_sync_bit.sv+
+%$
+\item \verb+$TUTORIAL/ip/pfs_init_monitor/src/pfs_init_monitor.sv+
+%$
+\end{itemize}
+\item Click \emph{Next}
+\item Click \emph{Finish}
+\end{itemize}
+%
+\item To configure Libero SoC to use SystemVerilog, select
+\emph{Project$\rightarrow$Project Settings}, then \emph{Design flow},
+change the Verilog language radio button to SystemVerilog, click \emph{Save}, and
+then \emph{Close}.
+%
+\item Click on the \emph{Design Hierarchy} tab in the Libero GUI.
+\item Click on the \emph{Build Hierarchy} button.
+\item Select the top-level of the hierarchy, \verb+pfs_disco+, right-mouse-click and
+select \emph{Set As Root}.
+\item Click on the \emph{Design Flow} tab in the Libero GUI.
+\item Click on the \emph{Save} button.
+%
+\item Configure the synthesis tool using \emph{Project$\rightarrow$Tool Profiles},
+and then \emph{Synthesis}.
+%
+\item Click on the green play button to synthesize and place-and-route the design.
+\item The Libero GUI will update with green check marks next to \emph{Implement Design},
+\emph{Synthesize}, and \emph{Place and Route}.
+Figure~\ref{fig:pfs_disco_libero_gui_manual} shows a screen shot of the Libero SoC 2025.1 GUI.
+%
+\item The Tcl commands correspondng to most of the GUI actions can be written to a script using:
+
+Select \emph{Project$\rightarrow$Export Script File}, and configure the settings to
+\begin{itemize}
+\item Script file: \verb+$TUTORIAL/designs/fabric_blinky/build/exported.tcl+
+%$
+\item Check: Include commands from current session only
+\item Select: Relative file names
+\item Click \emph{OK}.
+\end{itemize}
+The Tcl commands in exported.tcl script were the basis for \verb+scripts/libero.tcl+.
+\end{enumerate}
+
+\vskip5mm
+\begin{center}
+\fbox{\parbox{0.85\linewidth}{
+\textbf{\textcolor{red}{WARNING:}}\newline
+The design is not ready for hardware download, as pin assignments were not defined!}}
+\end{center}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Libero GUI
+% -----------------------------------------------------------------------------
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_gui_manual.png}
+  \end{center}
+  \caption{Libero GUI after manual project creation.}
+  \label{fig:ex1_libero_gui_manual}
+\end{figure}
+\end{landscape}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Pin Constraints}
+% -----------------------------------------------------------------------------
+
+In the Libero GUI:
+%
+\begin{enumerate}
+\item Select the \emph{Design Flow} tab.
+\item Select the \emph{Manage Constraints} step.
+\item Right-mouse-click and select \emph{Open Constraints Manager View}.
+\item The \emph{Constraints Manager} opens with the \emph{I/O Attributes}
+tab selected.
+\item Click the button/pull-down \emph{Edit$\rightarrow$Edit with I/O Editor}
+button to edit the pin constraints.
+\item Figure~\ref{fig:ex1_libero_gui_pins_default} shows the default pin
+assignments. These pin assignments do not represent any specific hardware
+design and need to be customized for the target hardware.
+
+\item The pin assignments editor can be used to define the pin constraints specific
+to a board, or can be used to create a template I/O constraints .pdc file, which
+can then be edited with the board-specific constraints.
+%
+\item Update the \emph{I/O Editor} column for \emph{Pin Number} to match
+Table~\ref{tab:ex1_pins}.
+
+The default \emph{I/O Standard} of LVCMOS18 is correct for the clock,
+asynchronous reset input and LED outputs, but is not correct for the probes.
+These issues were resolved by exporting the .PDC file, and then manually
+editing the bank voltages and I/O standard settings.
+
+The \emph{I/O Editor} view includes a slew rate column. GPIO pins support
+PDC slew rate constraints, whereas HSIO pins do not.
+The GPIO default setting of OFF results in the fastest slew rate
+(p26~\cite{Microchip_PFSoC_IO_2025}). The probes do not need fast slew rate,
+so the slew rate was reduced.
+
+\item Export a Physical Design Constraints I/O file:
+\begin{itemize}
+\item \emph{File$\rightarrow$Export Physical Constraint (PDC)$\rightarrow$I/O Constraint}
+\item Change the exported filename to\newline
+\verb+$TUTORIAL/designs/fabric_blinky/build/pfs_disco_io.pdc+%$
+\item Check the \emph{Full Constraints} checkbox
+\item Click \emph{OK}
+\item Exit \emph{I/O Editor} and ignore the pin constraints changes.
+\end{itemize}
+
+The exported PDC was used as the basis for \verb+scripts/pfs_disco_io.pdc+.
+\item Exit the I/O Editor GUI.
+\item In the \emph{Constraint Manager}, \emph{I/O Attributes} tab, link the
+pin constraints file\newline
+\verb+$TUTORIAL/designs/fabric_blinky/scripts/pfs_disco_io.pdc+,\newline %$
+check the  \emph{Place and Route} checkbox, and click the \emph{Save} button.
+
+\item Click the green play button to run place-and-route with the new pin assignments.
+
+\item Figure~\ref{fig:ex1_libero_gui_pins} shows the Discovery Kit pin
+assignments.
+
+\end{enumerate}
+
+\vskip5mm
+\begin{center}
+\fbox{\parbox{0.85\linewidth}{
+\textbf{\textcolor{red}{WARNING:}}\newline
+Since this design does not have any interfaces with critical timing, this
+design could now be downloaded to hardware. However, in general, designs
+should have timing constraints, and be verified to meet those constraints,
+before testing on hardware.}}
+\end{center}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Discovery Kit Blinky LED Pin Assignments
+% -----------------------------------------------------------------------------
+%
+\begin{table}[p]
+\caption{Discovery Kit blinky LED pin assignments.}
+\label{tab:ex1_pins}
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|l|}
+\hline
+Port name & Pin Name & Voltage & Drive & Slew & Note\\
+\hline\hline
+&&&&&\\
+\texttt{arst\_n}  & T19   & LVCMOS18 &&& Push button SWITCH1\\
+&&&&&\\
+\texttt{clk}      & R18   & LVCMOS18 &&& 50MHz CLKIN input\\
+&&&&&\\
+\texttt{led[0]}   & T18   & LVCMOS18 & 4 & OFF & HSIO, VDDI0 = 1.8V\\
+\texttt{led[1]}   & V17   & LVCMOS18 & 4 & OFF &\\
+\texttt{led[2]}   & U20   & LVCMOS18 & 4 & OFF &\\
+\texttt{led[3]}   & U21   & LVCMOS18 & 4 & OFF &\\
+\texttt{led[4]}   & AA18  & LVCMOS18 & 4 & OFF &\\
+\texttt{led[5]}   & V16   & LVCMOS18 & 4 & OFF &\\
+\texttt{led[6]}   & U15   & LVCMOS18 & 4 & OFF &\\
+&&&&&\\
+\texttt{uart\_rx} & W21   & LVCMOS18 & 4 & OFF &\\
+\texttt{uart\_tx} & Y21   & LVCMOS18 & 4 & OFF &\\
+&&&&&\\
+\texttt{probe[0]} & E18   & LVCMOS33 & 4 & ON  & GPIO, VDDI1 = 3.3V\\
+\texttt{probe[1]} & F18   & LVCMOS33 & 4 & ON  &\\
+\texttt{probe[2]} & E12   & LVCMOS33 & 4 & ON  &\\
+\texttt{probe[3]} & G18   & LVCMOS33 & 4 & ON  &\\
+&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Libero GUI I/O Editor
+% -----------------------------------------------------------------------------
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_gui_pins_default.png}
+  \end{center}
+  \caption{Libero I/O Editor default pin assignments after manual project creation.}
+  \label{fig:ex1_libero_gui_pins_default}
+\end{figure}
+\end{landscape}
+
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_gui_pins.png}
+  \end{center}
+  \caption{Libero I/O Editor with Discovery Kit pin assignments.}
+  \label{fig:ex1_libero_gui_pins}
+\end{figure}
+\end{landscape}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Timing Constraints}
+% -----------------------------------------------------------------------------
+
+In the Libero GUI:
+%
+\begin{enumerate}
+\item Select the \emph{Design Flow} tab.
+\item Select the \emph{Manage Constraints} step.
+\item Right-mouse-click and select \emph{Open Constraints Manager View}.
+\item The \emph{Constraints Manager} opens with the \emph{I/O Attributes}
+tab selected.
+\item Click on the \emph{Timing} tab.
+\item Click on the button/pull-down \emph{Edit$\rightarrow$Edit Synthesis Constraints}.
+\item The \emph{Constraints Editor} allows you to construct timing constraints
+that adhere to Synopsys Design Constraints (SDC) syntax.
+Constraints are saved in the Libero project in the file
+\verb+constraint\user.sdc+. For example, a 50MHz clock constraint was
+created and saved, and the corresponding SDC Tcl command was:
+%
+\begin{verbatim}
+create_clock -name {clk_50mhz} -period 20 -waveform {0 10} \
+    [get_ports {clk_50mhz}]
+\end{verbatim}
+
+\item Exit the \emph{Constraints Editor} GUI.
+\item Remove \verb+user.sdc+ from the project.
+\item In the \emph{Constraint Manager}, \emph{Timing} tab, link the
+timing constraints file\newline
+\verb+$TUTORIAL/designs/fabric_blinky/scripts/pfs_disco.sdc+,\newline %$
+leave the \emph{Synthesis} checkbox unchecked,
+check the \emph{Place and Route} checkbox,
+check the \emph{Timing Verification} checkbox,
+and click the \emph{Save} button.
+
+The \emph{Synthesis} checkbox was left unchecked, as this checkbox is associated
+with the timing constraint file passed to Synplify for synthesis. The default
+Synplify settings are sufficient for most designs, so a Synplify SDC file
+is not required.
+
+\item Open the SDC file and review the LED clock-to-output timing parameters.
+
+\item Click the green play button to run place-and-route with constraints.
+
+\item In the \emph{Design Flow} GUI, select the \emph{Open SmartTime} step,
+right-mouse-click and select \emph{Open Interactively}.
+\end{enumerate}
+
+The SmartTime GUI can be used to view different timing paths within the
+design, and can be used to generate a schematic diagram of the delay paths.
+%
+Figures~\ref{fig:ex1_libero_smarttime_fabric_max}
+and~\ref{fig:ex1_libero_smarttime_fabric_min} show the maximum and
+minimum delay paths for the LED clock-to-output delays with the output
+registers in the fabric.
+The reported slack is under 0.1ns, as the SDC constraint for the maximum delay
+was set to equal the reported delay rounded up to the nearest 0.1ns,
+while the minimum delay was set equal to the reported delay rounded down
+to the nearest 0.1ns.
+%
+Figure~\ref{fig:ex1_libero_smarttime_path}(a) shows the delay
+path for the LED output registers in the fabric: the output register
+is an SLE.
+%
+Figure~\ref{fig:ex1_libero_chipplanner}(a) shows the ChipPlanner
+view for the LED output registers in the fabric: the blinky logic
+was selected so it is highlighed in white, while the I/O pads
+are highlighed in yellow.
+
+\clearpage
+% -----------------------------------------------------------------------------
+% LED clock-to-output delay
+% -----------------------------------------------------------------------------
+%
+\begin{table}
+\caption{Blinky LED clock-to-output delays (in nanoseconds).}
+\label{tab:ex1_tco}
+\begin{center}
+\begin{tabular}{|l||r|r||r|r|}
+\hline
+          & \multicolumn{2}{c||}{Fabric Registers} &
+           \multicolumn{2}{c|}{I/O Registers}\\
+\cline{2-5}
+Parameter & Min & Max & Min & Max\\
+\hline\hline
+&\phantom{XXXX}&\phantom{XXXX}&\phantom{XXXX}&\phantom{XXXX}\\
+Clock-to-Output & 3.769 & 6.651 &  3.587 & 6.010\\
+Constraint      & 3.700 & 6.700 &  3.500 & 6.100\\
+Slack           & 0.069 & 0.049 &  0.087 & 0.090\\
+&&&&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+% -----------------------------------------------------------------------------
+\subsection{I/O Register Constraints}
+% -----------------------------------------------------------------------------
+
+The placement of I/O registers in PolarFire SoC designs can be
+contolled using a Netlist Design Constraint (NDC) file. In the Libero GUI:
+%
+\begin{enumerate}
+\item Select the \emph{Design Flow} tab.
+\item Select the \emph{Manage Constraints} step.
+\item Right-mouse-click and select \emph{Open Constraints Manager View}.
+\item The \emph{Constraints Manager} opens with the \emph{I/O Attributes}
+tab selected.
+\item Click on the \emph{Netlist Attributes} tab.
+\item Link the netlist constraints file\newline
+\verb+$TUTORIAL/designs/fabric_blinky/scripts/pfs_disco.ndc+,\newline %$
+check the \emph{Synthesis} checkbox,
+and click the \emph{Save} button.
+\item Edit \verb+pfs_disco.ndc+ to disable (or enable) the use of I/O registers.
+\item Edit \verb+pfs_disco.sdc+ to set the timing constraints for fabric (or I/O) registers.
+
+\item Click the green play button to run place-and-route.
+
+\item In the \emph{Design Flow} GUI, select the \emph{Open SmartTime} step,
+right-mouse-click and select \emph{Open Interactively}.
+\end{enumerate}
+%
+Figures~\ref{fig:ex1_libero_smarttime_ioff_max}
+and~\ref{fig:ex1_libero_smarttime_ioff_min} show the maximum and
+minimum delay paths for the LED clock-to-output delays with the output
+registers in the I/O.
+The reported slack is under 0.1ns, as the SDC constraint for the maximum delay
+was set to equal the reported delay rounded up to the nearest 0.1ns,
+while the minimum delay was set equal to the reported delay rounded down
+to the nearest 0.1ns.
+%
+Figure~\ref{fig:ex1_libero_smarttime_path}(b) shows the delay
+path for the LED output registers in the I/O: the output register
+is an IOREG.
+%
+Figure~\ref{fig:ex1_libero_chipplanner}(b) shows the ChipPlanner
+view for the LED output registers in the I/O.
+A close comparison of the white and yellow highlighted components in
+Figure~\ref{fig:ex1_libero_chipplanner}(a) and (b) shows
+that (a) has additional registers near the output pads that are not
+highlighted in (b): these are the fabric output registers.
+
+Table~\ref{tab:ex1_tco} summarizes the LED clock-to-output delays for
+the output registers placed in the fabric vs I/O. The constraint
+values can be used as \emph{datasheet} values when analyzing external
+device interface timing. If external device interface timing requirements
+cannot be met with either of these output register configurations shown in
+Table~\ref{tab:ex1_tco}, then the clock-to-output delay can be adjusted
+using the output drive strength, or using the programmable output delay,
+or using BUFD delays within the fabric.
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Libero GUI SmartTime Timing Analyzer
+% -----------------------------------------------------------------------------
+%
+% Bring up both the max and min GUIs prior to screen capture, so that the
+% window title boxes contain the project path.
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_smarttime_fabric_max.png}
+  \end{center}
+  \caption{Libero SmartTime maximum delay with LED output registers in the fabric.}
+  \label{fig:ex1_libero_smarttime_fabric_max}
+\end{figure}
+\end{landscape}
+
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_smarttime_fabric_min.png}
+  \end{center}
+  \caption{Libero SmartTime minimum delay with LED output registers in the fabric.}
+  \label{fig:ex1_libero_smarttime_fabric_min}
+\end{figure}
+\end{landscape}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Libero GUI SmartTime Timing Analyzer
+% -----------------------------------------------------------------------------
+%
+% Bring up both the max and min GUIs prior to screen capture, so that the
+% window title boxes contain the project path.
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_smarttime_ioff_max.png}
+  \end{center}
+  \caption{Libero SmartTime maximum delay with LED output registers in the I/O.}
+  \label{fig:ex1_libero_smarttime_ioff_max}
+\end{figure}
+\end{landscape}
+
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_smarttime_ioff_min.png}
+  \end{center}
+  \caption{Libero SmartTime minimum delay with LED output registers in the I/O.}
+  \label{fig:ex1_libero_smarttime_ioff_min}
+\end{figure}
+\end{landscape}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Libero GUI SmartTime Timing Analyzer Path Delays
+% -----------------------------------------------------------------------------
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_smarttime_fabric_path.png}\\
+    (a) Fabric registers\\
+    \vskip5mm
+    \includegraphics[width=215mm]
+    {figures/ex1_libero_smarttime_ioff_path.png}\\
+    (b) I/O registers
+  \end{center}
+  \caption{Libero SmartTime timing path for with LED output registers in the fabric vs I/O.}
+  \label{fig:ex1_libero_smarttime_path}
+\end{figure}
+\end{landscape}
+
+% -----------------------------------------------------------------------------
+% Libero GUI ChipPlanner Views
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.73\textwidth]
+    {figures/ex1_libero_chipplanner_fabric.png}\\
+    (a) Fabric registers\\
+    \vskip5mm
+    \includegraphics[width=0.73\textwidth]
+    {figures/ex1_libero_chipplanner_ioff.png}\\
+    (b) I/O registers
+  \end{center}
+  \caption{Libero ChipPlanner view with LED output registers in the fabric vs I/O.}
+  \label{fig:ex1_libero_chipplanner}
+\end{figure}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Floorplan Constraints}
+% -----------------------------------------------------------------------------
+
+The Libero ChipPlanner view of a design can be accessed via:
+%
+\begin{enumerate}
+\item Select the \emph{Design Flow} tab.
+\item Select the \emph{Manage Constraints} step.
+\item Right-mouse-click and select \emph{Open Constraints Manager View}.
+\item The \emph{Constraints Manager} opens with the \emph{I/O Attributes}
+tab selected.
+\item Click on the \emph{Floor Planner} tab.
+\item Click on the \emph{View} button.
+\item The ChipPlanner tool is then launched as a separate application.
+\end{enumerate}
+%
+The ChipPlanner view shows the PolarFire SoC die, the logic within the die,
+and the logic in the I/O banks.
+%
+Figure~\ref{fig:ex1_libero_chipplanner} shows the ChipPlanner view of
+the LED design: the logic in the fabric is mainly the counter used to
+blink the LEDs.
+
+Floorplan constraints are user-defined constraints that lock logic at a
+specific physical location on the die. Components that should be considered
+for explicit floorplanning are clock buffers, reset buffers, and reset
+synchronizers. Reset synchronizers are an interesting case, as the Libero
+tool does not have any unique constraint for identifying registers that
+should be placed tightly together. Designs that include synchronizer
+components should also include floorplanning constraints and timing
+constraints to ensure the synchronizers are implemented correctly.
+
+The reset synchronizer registers placement was investigated as follows;
+%
+\begin{enumerate}
+\item \textbf{No additional constraints}
+
+Figure~\ref{fig:ex1_libero_chipplanner_reset}(a) shows the
+ChipPlanner view of the synchronizer registers, with the synchronizer
+registers highlighted in white:
+the four registers were not placed in the same row of registers.
+
+\item \textbf{PDC placement constraints}
+
+Floorplan constraints were used to place the four synchronizer registers
+into the a row of registers located close to the global clock and reset
+buffers that are located near the center bottom of the die.
+Figure~\ref{fig:ex1_libero_chipplanner_reset}(c) shows the
+ChipPlanner view of the registers, with the synchronizer registers
+highlighted in white: the four registers are placed in a row of
+registers just above the global reset buffer.
+
+\item \textbf{PDC placement plus SDC delay constraints}
+
+SDC delay constraints were added and adjusted until the slack for
+the minimum and maximum was under 10ps.
+
+\item \textbf{SDC delay constraints}
+
+The PDC constraints were removed from the project (unchecked in the
+constraints manager view) to determine if tight SDC constraints were
+sufficient to place the registers in the same row.
+
+Figure~\ref{fig:ex1_libero_chipplanner_reset}(b) shows the
+SDC constraints did result in the registers being placed in the same row,
+however, the figure shows that the synchronizer registers were not packed
+tightly together. The figure also shows that the synchronizer was placed
+by the counter, rather than the desired location, by the global reset buffer.
+
+\end{enumerate}
+%
+This test demonstrated that both PDC and SDC constraints should be used
+for synchronizer placement. The PDC constraints ensure the registers are
+placed where the user wants them, while the SDC constraints are
+\emph{insurance} that checks the register placement is as the user intended.
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Libero GUI ChipPlanner view of reset synchronizer
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=\textwidth]
+    {figures/ex1_libero_chipplanner_reset_a.png}\\
+    (a) No SDC or floorplan constraints\\
+    \vskip5mm
+    \includegraphics[width=\textwidth]
+    {figures/ex1_libero_chipplanner_reset_b.png}\\
+    (b) With SDC and without floorplan constraints
+    \vskip5mm
+    \includegraphics[width=\textwidth]
+    {figures/ex1_libero_chipplanner_reset_c.png}\\
+    (c) With SDC and floorplan constraints
+  \end{center}
+  \caption{Libero ChipPlanner view of the reset synchronizer registers.}
+  \label{fig:ex1_libero_chipplanner_reset}
+\end{figure}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Synplify Elite Hierarchy
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=\textwidth]
+    {figures/ex1_synplify_elite_hierarchy.png}
+  \end{center}
+  \caption{Synplify Elite \emph{Hierarchical Area Report}.}
+  \label{fig:ex1_synplify_elite_hierarchy}
+\end{figure}
+
+% -----------------------------------------------------------------------------
+\subsection{Triple Modular Redundancy (TMR)}
+% -----------------------------------------------------------------------------
+\label{sec:ex1_tmr}
+
+Synopsys Synplify Elite can be used to implement various TMR schemes,
+eg., Local TMR (LTMR), Distributed TMR (DTMR), and Block TMR (BTMR).
+%
+The following process was used to triplicate the blinky LED component
+within the Discovery Kit design:
+%
+\begin{enumerate}
+\item In the Libero GUI, select the \emph{Design Flow} tab.
+\item Use the \emph{Constraints Manager}, \emph{Floor Planner} tab, to
+link the floorplan constraints file\newline
+\verb+$TUTORIAL/designs/fabric_blinky/scripts/pfs_disco_fp.pdc+,\newline %$
+check the \emph{Place and Route} checkbox,
+and click the \emph{Save} button.
+
+Review the FDC file for the floorplan options.
+\item Use the \emph{Constraints Manager}, \emph{Netlist Attributes} tab, to
+link the TMR constraints file\newline
+\verb+$TUTORIAL/designs/fabric_blinky/scripts/pfs_disco.fdc+,\newline %$
+check the \emph{Synthesis} checkbox,
+and click the \emph{Save} button.
+
+Review the FDC file for the DTMR constraint syntax.
+\item Select the \emph{Design Flow} \emph{Synthesize} step, right-mouse-click and select
+\emph{Clean}.
+
+This clears the synthesis results created by \emph{Synplify Base}.
+
+\item Use \emph{Project$\rightarrow$Tool Profiles},
+then \emph{Synthesis}, and select the \verb+Synplify Elite+ tool profile.
+\item Select the \emph{Synthesize} step, right-mouse-click and select
+\emph{Open Interactively}.
+
+\item (Optional) Delete the (empty) FDC constraint file:
+\verb+synthesis.fdc+%$
+\item Click the \emph{Run} button and wait for synthesis to complete.
+\item In the \emph{Project Status} window, click the \emph{Hierarchical Area Report} link.
+
+Figure~\ref{fig:ex1_synplify_elite_hierarchy} shows the report with the
+triplicated \verb+blinky_31s_7s+ hierarchy expanded.
+
+\item In the Libero GUI, the \emph{Synthesize} step will now be green.
+
+\item Exit \emph{Synplify Elite}.
+
+\item In the Libero GUI, click the green play button to run place-and-route
+for the triplicated design.
+
+\item Open \emph{ChipPlanner} to view the TMR instance placement.
+\end{enumerate}
+
+Figure~\ref{fig:ex1_libero_chipplanner_tmr} shows the ChipPlanner view
+with blinky instance TMR1 selected. The instance was selected using the
+\emph{ChipPlanner} \emph{Logical} tab, by expanding the \verb+u5+ component
+to see the three TMR instances, and then selecting instance TMR1.
+Figure~\ref{fig:ex1_libero_chipplanner_tmr} shows that logic for the
+three TMR instances is intermingled on the die.
+
+The triplicated logic can be floorplanned to be placed into unique (mutually
+exclusive) regions.
+%
+Figure~\ref{fig:ex1_libero_chipplanner_tmr_fp}(a) shows the ChipPlanner
+view after three unique regions were defined (see the floorplan PDC file) and
+the three blinky TMR instances assigned to a unique region.
+%
+Figure~\ref{fig:ex1_libero_chipplanner_tmr_fp}(b) shows the ChipPlanner
+view for a floorplanned non-TMR design.
+%
+The floorplan regions in
+Figure~\ref{fig:ex1_libero_chipplanner_tmr_fp} were created in the
+same location on the die as the placement in
+Figure~\ref{fig:ex1_libero_chipplanner_tmr}, to help show how
+floorplanning can \emph{clean up} the placement of the TMR instances.
+%
+The Chipplanner views in
+Figures~\ref{fig:ex1_libero_chipplanner_tmr}
+and~\ref{fig:ex1_libero_chipplanner_tmr_fp} can be reproduced
+by editing the floorplan FDC, the NDC (to place the LED output registers),
+and the SDC (to configure the timing constraints).
+
+% -----------------------------------------------------------------------------
+% ChipPlanner view of DTMR without floorplanning
+% -----------------------------------------------------------------------------
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=210mm]
+    {figures/ex1_libero_chipplanner_tmr.png}
+  \end{center}
+  \caption{Libero ChipPlanner view of the TMR design without floorplanning.}
+  \label{fig:ex1_libero_chipplanner_tmr}
+\end{figure}
+\end{landscape}
+
+% -----------------------------------------------------------------------------
+% ChipPlanner view of No TMR vs DTMR with floorplanning
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.73\textwidth]
+    {figures/ex1_libero_chipplanner_tmr_fp.png}\\
+    (a) TMR\\
+    \vskip5mm
+    \includegraphics[width=0.73\textwidth]
+    {figures/ex1_libero_chipplanner_no_tmr_fp.png}\\
+    (b) No TMR
+  \end{center}
+  \caption{Libero ChipPlanner view of the TMR and non-TMR design with floorplanning.}
+  \label{fig:ex1_libero_chipplanner_tmr_fp}
+\end{figure}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Libero Scripted Flow}
+% -----------------------------------------------------------------------------
+
+Table~\ref{tab:pfs_disco_variants} shows a subset of the Discovery Kit blinky
+LED design variants that have been analyzed in this tutorial, along with
+additional variants that are used to investigate the clock-to-output
+delay variation with drive strength and load capacitance.
+%
+It is important to be able to reproduce the results of each variant,
+and that is where scripting helps.
+
+The requirements for the Libero scripted flow are:
+%
+\begin{enumerate}
+\item Customize the RTL parameters.
+\item Customize the SDC timing constraints.
+\item Customize the PDC pin constraints.
+\item Customize the PDC floorplan constraints.
+\item Customize the NDC netlist constraints.
+\item Customize the FDC netlist constraints (for TMR).
+\item Use Synplify Base or Elite (for TMR).
+\item Generate custom timing reports.
+\end{enumerate}
+%
+The Discovery Kit variant scripts support all of these requirements.
+The variant constraints files each differ with minor  parameter changes,
+so template files are used, and the variant scripts update the variant
+parameters, and create the customized constraint files in the build area.
+
+The Libero scripted flow is implemented using the following design scripts:
+%
+\begin{itemize}
+\item \verb+variant.tcl+ Design variant procedures
+\item \verb+libero_variants.tcl+ Libero script that generates all variants
+\item \verb+timing_report.tcl+ LED output timing report
+\end{itemize}
+%
+The design variants are built as follows:
+%
+\begin{enumerate}
+\item Start \emph{Libero SoC 2025.1}
+\item Select \emph{Project$\rightarrow$Execute Script}
+\item Use the \emph{Script file:} browse button to select\newline
+\verb+$TUTORIAL/designs/fabric_blinky/scripts/libero_variants.tcl+%$
+\item Click \emph{Run}
+\end{enumerate}
+%
+The script generates Libero projects for all of the design variants in
+Table~\ref{tab:pfs_disco_variants}, runs synthesis, place-and-route,
+and generates timing reports (total time for all projects is about 35 minutes).
+
+\clearpage
+The timing analysis results are reproducible. A reference copy of the
+timing reports are located in
+\verb+$TUTORIAL/designs/fabric_blinky/timing_reports+ %$
+along with a bash script that can be used to compare (diff) the
+reference timing reports to those in the build area.
+%
+For example, under Windows 10 using a WSL2 bash terminal, the timing
+reports in the build area are checked as follows:
+%
+\begin{verbatim}
+$ export TUTORIAL=/mnt/c/github/microchip_pfs_disco
+$ cd $TUTORIAL/designs/fabric_blinky/timing_reports
+$ ./compare_to_build.sh
+Variant 1: PASS
+Variant 2: PASS
+Variant 3: PASS
+Variant 4: PASS
+Variant 5: PASS
+Variant 6: PASS
+Variant 7: PASS
+Variant 8: PASS
+Variant 9: PASS
+Variant 10: PASS
+Variant 11: PASS
+Variant 12: PASS
+\end{verbatim}
+%
+The clock-to-output delays in Table~\ref{tab:pfs_disco_variants} were
+obtained from the timing report files. The timing report clock-to-output
+delays match the SmartTime reported values, but reviewing text files is
+faster than repeatedly opening a Libero project, then SmartTime, and then
+reviewing the SmartTime clock-to-output delay for maximum (default SmartTime
+window) and minimum (another SmartTime window).
+
+% -----------------------------------------------------------------------------
+% Design Variants
+% -----------------------------------------------------------------------------
+%
+\begin{table}[p]
+\caption{Discovery Kit design variants}
+\label{tab:pfs_disco_variants}
+\begin{center}
+\begin{tabular}{|c||c|c|c||c|c||c|c|}
+\hline
+Variant & \multicolumn{3}{c||}{Output} & Floorplan & TMR &
+          \multicolumn{2}{c|}{Clock-to-Output}\\
+\cline{2-4}
+\cline{7-8}
+        & Registers & Drive & Load & Region & & Min & Max\\
+\hline\hline
+&&&&&&\phantom{XXXXX}&\phantom{XXXXX}\\
+ 1 &   Fabric &  4 &  5 & No  & No  & 3.769 & 6.605\\
+ 2 &   I/O    &  4 &  5 & No  & No  & 3.587 & 6.010\\
+&&&&&&&\\
+ 3 &   Fabric &  4 &  5 & Yes & No  & 3.769 & 6.605\\
+ 4 &   I/O    &  4 &  5 & Yes & No  & 3.587 & 6.010\\
+&&&&&&&\\
+ 5 &   Fabric &  4 &  5 & Yes & Yes & 3.769 & 6.605\\
+ 6 &   I/O    &  4 &  5 & Yes & Yes & 3.587 & 6.010\\
+&&&&&&&\\
+ 7 &   Fabric &  8 &  5 & Yes & No  & 3.571 & 6.397\\
+ 8 &   I/O    &  8 &  5 & Yes & No  & 3.373 & 5.802\\
+ 9 &   Fabric & 12 &  5 & Yes & No  & 3.454 & 6.271\\
+10 &   I/O    & 12 &  5 & Yes & No  & 3.254 & 5.676\\
+&&&&&&&\\
+11 &   Fabric &  4 & 10 & Yes & No  & 4.138 & 6.972\\
+12 &   I/O    &  4 & 10 & Yes & No  & 3.955 & 6.377\\
+13 &   Fabric &  4 & 20 & Yes & No  & 4.877 & 7.706\\
+14 &   I/O    &  4 & 20 & Yes & No  & 4.678 & 7.111\\
+&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}

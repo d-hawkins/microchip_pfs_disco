@@ -1,0 +1,435 @@
+% =============================================================================
+\section{PolarFire SoC Discovery Power, Reset, and Clocks}
+% =============================================================================
+\label{sec:power}
+
+This section reviews the implementation of the PolarFire SoC Discovery
+Kit power supplies, resets, and clocks. This information is specific to
+the board design, and is required to define pin constraints (I/O standards).
+The kit has power supply jumper options, and it is important to understand
+how these jumpers need to be configured to avoid damaging the board when
+connecting to external devices using the expansion connectors.
+
+% -----------------------------------------------------------------------------
+\subsection{Power Supply Jumpers}
+% -----------------------------------------------------------------------------
+
+The PolarFire SoC Discovery Kit schematic~\cite{Microchip_DISCO_SCH_2023}
+contains several jumpers:
+%
+\begin{itemize}
+%
+\item \textsf{5P0V\_IN}: 5V power source select
+\begin{itemize}
+\item Jumper on schematic page 13
+\item J47 selects between the USB power or power jack (J7)
+\end{itemize}
+%
+\item \textsf{VDDI1\_5}: FPGA Bank 1 and 5 power
+and \textsf{VDDAUX1}: FPGA VDDAUX1 power
+\begin{itemize}
+\item Jumpers on schematic page 11
+\item J45 and J46 select between 2.5V or 3.3V (default)
+\item The schematic notes are:
+\begin{itemize}
+\item 2.5V for MIPI and Ethernet PHY operation
+\item 3.3V for RPi and MikroBus operation
+\end{itemize}
+\item J45 and J46 must be set to the same voltage (p8~\cite{Microchip_DISCO_UG_2025})
+\item Bank 1 contains GPIO signals (p9~\cite{Microchip_DISCO_UG_2025})
+\item Bank 5 contains MSS SGMII signals (p9~\cite{Microchip_DISCO_UG_2025})
+\item The SGMII PHY is the Microchip (previously Vitesse) VSC8221~\cite{Microchip_VSC8221_2006}
+\item Schematic pages 5 and 6 shows that \textsf{VDDI1\_5} powers the VSC8221 VDDIO pins
+\item The VSC8221 data sheet indicates VDDIO can be 2.5V or 3.3V~\cite{Microchip_VSC8221_2006}
+\item Schematic page 5 shows that \textsf{VDDI1\_5} powers the 125MHz oscillator
+\item The 125MHz oscillator schematic symbol has a note that it supports 2.25V to 3.63V
+\item The \href{https://www.microchip.com/en-us/product/at24cm01}{AT24CM01} EEPROM supports 1.7V to 5.5V
+\item Schematic page 7 has the Bank 1 FPGA connections, which include:
+\begin{itemize}
+\item The Raspberry Pi header (RPi prefixed signals)
+\item The MikroBus header (MBUS prefixed signals)
+\item The Ethernet PHY  (VSC prefixed signals)
+\item The Raspberry Pi MIPI connector (GPIO\_MIPI prefixed signals)
+\end{itemize}
+\item \textcolor{magenta}{The J45 and J46 jumpers need to be set correctly for any external device}
+\end{itemize}
+%
+\item \textsf{VCCB}: 7-segment display power
+\begin{itemize}
+\item Jumper on schematic page 7
+\item J49 selects between 3.3V or 5.0V
+\item The dual-voltage buffer U6 (TX0108PWR) performs voltage translation
+from 3.3V or 5.0V to 1.8V for the FPGA interface
+\item The buffer protects the FPGA from damage
+\item \textcolor{magenta}{The J49 jumper needs to be set correctly for the external 7-segment display}
+\end{itemize}
+%
+\end{itemize}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Resets
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=\textwidth]
+    {figures/pfs_resets}
+  \end{center}
+  \caption{PolarFire SoC resets.}
+  \label{fig:pfs_resets}
+\end{figure}
+% -----------------------------------------------------------------------------
+
+% -----------------------------------------------------------------------------
+\subsection{Reset}
+% -----------------------------------------------------------------------------
+
+The PolarFire SoC power-on-reset sequence is described in detail in the
+\emph{PolarFire Family Power-Up and Resets User Guide}~\cite{Microchip_PFSoC_PU_2025}.
+%
+Figure~\ref{fig:pfs_resets} shows the PolarFire SoC resets:
+\begin{itemize}
+\item External device reset (DEVRST\_N) pin resets the System Controller
+\item The System Controller manages the resets to the processor
+\item The System Controller manages the resets to the fabric
+\end{itemize}
+%
+The next sections describe how to generate fabric resets, and how the
+System Controller manages the relative timing of the
+fabric reset deassertion versus processor reset deassertion.
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Power-on to functional timing
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=\textwidth]
+    {figures/pfs_power_on_to_functional_timing.png}
+  \end{center}
+  \caption{PolarFire SoC power-on to functional timing
+           (per Figure 2-2, p8~\cite{Microchip_PFSoC_PU_2025}.}
+  \label{fig:pfs_power_on_to_functional}
+\end{figure}
+
+% -----------------------------------------------------------------------------
+\subsubsection{Fabric Power-on-Reset}
+% -----------------------------------------------------------------------------
+
+Flash-based FPGAs required a power-on-reset to ensure fabric registers are
+initialized.
+%
+Figure~\ref{fig:pfs_power_on_to_functional} shows the PolarFire SoC resets.
+%
+The PolarFire SoC initialization monitor (PFSOC\_INIT\_MONITOR), visible on
+the left side of the figure, provides System Controller configuration
+status signals to the fabric logic.
+%
+Fabric logic \emph{must} use the PFSOC\_INIT\_MONITOR signals
+to qualify any external reset inputs, since the I/Os are not enabled until
+after the fabric logic is enabled. The initialization monitor signals are
+asynchronous to any fabric clocks, so fabric resets based on the monitor
+signals must be synchronized to their respective clock domains using
+reset synchronizer components.
+The Microchip SmartDesign examples instantiate the CORERESET\_PF reset
+synchronizer component.
+The \emph{PolarFire Family Power-Up and Resets User Guide} has SmartDesign
+examples of PolarFire and PolarFire SoC initialization,
+eg., see Figure 3-3 on page 46, and Figure 3-3 on
+page 52~\cite{Microchip_PFSoC_PU_2025}.
+%
+The blinky LED example in Section~\ref{sec:fabric_blinky} generates the fabric
+reset using the IP Catalog \emph{PolarFireSoC Initialization Monitor}
+(v1.0.309) component, combinatorial logic, and a custom reset synchronizer
+component.
+
+Figure~\ref{fig:pfs_power_on_to_functional} shows the PolarFire SoC power-on
+to functional timing (copied from Figure 2-2, p8~\cite{Microchip_PFSoC_PU_2025}).
+The power-on-reset timing diagrams can also be found in the device
+datasheet~\cite{Microchip_PFSoC_DS_2025}. The PolarFire SoC documentation
+refers to the power-on-reset time as the \emph{power-up to functional time}
+(PUFT).
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Probes
+% -----------------------------------------------------------------------------
+%
+\begin{table}[t]
+\caption{Discovery Kit Raspberry Pi header pins used to probe power-on-reset.}
+\label{tab:pfs_disco_probes}
+\begin{center}
+\begin{tabular}{|c|l|c|c|l|l|}
+\hline
+RPi & Schematic        & PFSoC & Probe & Probed & Note\\
+Pin & Net Name         & Pin   & Index & Signal &\\
+\hline\hline
+&&&&&\\
+ 1 & 3.3V              &       &       & Power &\\
+&&&&&\\
+ 3 & RPi\_GPIO2\_SDA   & E18   & 0     & Logic low              & 10k pull-up\\
+ 5 & RPi\_GPIO3\_SCL   & F18   & 1     & DEVICE\_INIT\_DONE     & 10k pull-up\\
+ 7 & RPi\_GPIO4\_GCLK  & E12   & 2     & BANK\_0\_CALIB\_STATUS & \\
+11 & RPi\_GPIO17\_GEN0 & G18   & 3     & Design reset (RST\_N)  & \\
+&&&&&\\
+39 & Ground            &       &       & Power                  &\\
+&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+% -----------------------------------------------------------------------------
+
+The Discovery Kit FPGA fabric power-on-reset to functional timing was investigated
+using the Raspberry Pi (RPi) 40-pin header and the fabric blinky LED design
+(see Section~\ref{sec:fabric_blinky}).
+Table~\ref{tab:pfs_disco_probes} shows the RPi header pins
+probed using two oscilloscope channels.
+%
+Figures~\ref{fig:pfs_disco_power_on_a} and~\ref{fig:pfs_disco_power_on_b} show
+the measured power-on-reset timing:
+%
+\begin{enumerate}
+\item \textbf{Device Reset}
+
+The Discovery kit schematic (p9~\cite{Microchip_DISCO_SCH_2023}) shows the
+device reset pin (DEVRST\_N) is driven by a Microchip MCP121-315 3.3V
+voltage supervisor~\cite{Microchip_MCP121_2023} which has a power-on delay of 120ms.
+
+Figure~\ref{fig:pfs_disco_power_on_a}(a) shows the 3.3V power supply on channel 1
+and an FPGA output driven low on channel 2. The pulse observed on channel 2
+has a rising-edge that follows the 3.3V power supply due to the signal 10k
+pull-up to 3.3V, and a falling-edge that occurs slightly after 120ms
+due to the voltage monitor 120ms power-on delay time plus the fabric ready time.
+Figure~\ref{fig:pfs_power_on_to_functional} shows the fabric ready delay is
+the time taken until FPGA\_POR\_N deasserts.
+
+\item \textbf{Device Initialization Done}
+
+Figure~\ref{fig:pfs_disco_power_on_a}(b) shows the falling-edge of the low
+output on channel 1 and DEVICE\_INIT\_DONE on channel 2. The channel 2
+signal starts out high due to the 10k pull-up to 3.3V on the on the signal,
+transitions low when the output driver is enabled, and then transitions
+high when DEVICE\_INIT\_DONE asserts.
+%
+Figure~\ref{fig:pfs_power_on_to_functional} indicates that the time between
+the deassertion of FPGA\_POR\_N and the assertion of DEVICE\_INIT\_DONE
+is design dependent: for the Discovery Kit blinky LED design this time is
+just under 600$\mu$s.
+
+\item \textbf{Bank Calibration Done}
+
+Figure~\ref{fig:pfs_disco_power_on_b}(a) shows the falling-edge of the low
+output on channel 1 and BANK\_0\_CALIB\_STATUS on channel 2.
+%
+The Discovery Kit fabric drive LEDs (LED1 through LED7) are located on Bank 0,
+so the blinky LED design uses BANK\_0\_CALIB\_STATUS as one of the design
+reset sources.
+
+\item \textbf{Fabric Logic Reset}
+
+Figure~\ref{fig:pfs_disco_power_on_b}(b) shows the falling-edge of the low
+output on channel 1 and the blinky LED reset on channel 2.
+The blinky LED reset is synchronized to the 50MHz clock.
+%
+Figures~\ref{fig:pfs_disco_power_on_b}(a) and (b) look the same, as
+BANK\_0\_CALIB\_STATUS is one of the inputs to the design reset synchronizer.
+
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+% Power-on-reset waveforms
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]
+    {figures/pfs_disco_power_on_0_output_low.png}\\
+    (a) 3.3V and a fabric output driven low\\
+    \vskip5mm
+    \includegraphics[width=0.8\textwidth]
+    {figures/pfs_disco_power_on_1_device_init_done.png}\\
+    (b) Fabric output driven low and BANK\_0\_CALIB\_STATUS
+  \end{center}
+  \caption{Discovery Kit power-on-reset waveforms.}
+  \label{fig:pfs_disco_power_on_a}
+\end{figure}
+
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]
+    {figures/pfs_disco_power_on_2_calib_done.png}\\
+    (a) Fabric output driven low and CALIB\_DONE\\
+    \vskip5mm
+    \includegraphics[width=0.8\textwidth]
+    {figures/pfs_disco_power_on_3_reset.png}\\
+    (b) Fabric output driven low and 50MHz clock-domain active-low reset
+  \end{center}
+  \caption{Discovery Kit power-on-reset waveforms.}
+  \label{fig:pfs_disco_power_on_b}
+\end{figure}
+
+% -----------------------------------------------------------------------------
+\subsubsection{Fabric Reset Push Button}
+% -----------------------------------------------------------------------------
+
+The Discovery Kit FIR filter design uses SWITCH1 as a push button reset.
+%
+The top-level SmartDesign uses a debounce component
+(see Figure 2-2, p5~\cite{Microchip_AN5165_2024}).
+%
+The PolarFire SoC Discovery Kit schematic shows that the switches have
+an RC-filter with a time-constant of 1ms. The PolarFire SoC inputs can be
+configured to enable a Schmitt trigger input. The combination of RC-filter
+and Schmitt trigger should be sufficient, so a debounce circuit is not
+required. The SmartDesign debouncer is likely something that
+was inherited from the FIR filter design from a different development kit,
+eg., this FIR filter design is available for
+\href{https://www.microchip.com/en-us/application-notes/an4753}{RTG4},
+\href{https://www.microchip.com/en-us/application-notes/DG0438}{SmartFusion2}, and
+\href{https://www.microchip.com/en-us/application-notes/DG0504}{IGLOO2} kits.
+
+The \href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design}
+{Discovery Kit Reference Design} script was run with the FIR\_DEMO argument and
+the I/O Editor used to view the pin constraints: the Schmitt trigger was not
+enabled on the SWITCH1 input.
+%
+Figure~\ref{fig:pfs_disco_reset} shows the Discovery Kit reset waveforms measured
+from the blinky LED example in Section~\ref{sec:fabric_blinky} with the SWITCH1
+Schmitt trigger input enabled. Similar waveforms were observed with the Schmitt
+trigger disabled. Conclusion: the Discovery Kit does not need switch debouncing.
+
+% -----------------------------------------------------------------------------
+% Reset push button waveforms
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]
+    {figures/pfs_disco_reset_a.png}\\
+    (a) 3.3V and reset assertion at 100ns/div\\
+    \vskip5mm
+    \includegraphics[width=0.8\textwidth]
+    {figures/pfs_disco_reset_b.png}\\
+    (b) 3.3V and reset assertion at 20ms/div
+  \end{center}
+  \caption{Discovery Kit push button reset waveforms.}
+  \label{fig:pfs_disco_reset}
+\end{figure}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsubsection{Processor Reset and Boot}
+% -----------------------------------------------------------------------------
+
+
+The PolarFire SoC MSS reset sequence is described in detail in the
+\emph{PolarFire Family Power-Up and Resets User Guide}~\cite{Microchip_PFSoC_PU_2025}.
+%
+Figure~\ref{fig:pfs_mss_boot_modes}(a) shows the MSS Pre-Boot execution flow
+that leads to the selection of one of four different boot modes.
+%
+The two boot modes used in this tutorial are:
+%
+\begin{itemize}
+\item \textbf{Boot mode 0: Idle boot}
+
+Figure~\ref{fig:pfs_mss_boot_modes}(b) shows the idle boot mode flow.
+The PolarFire SoC MSS processors enter busy loops until the debugger
+connects (p29~\cite{Microchip_PFSoC_PU_2025}).
+
+\item \textbf{Boot mode 1: Non-secure boot}
+
+Figure~\ref{fig:pfs_mss_boot_modes}(c) shows the non-secure boot mode flow.
+The PolarFire SoC MSS processors execute from reset vectors stored in
+eNVM (see Table 2-5 on p30 for the reset vector addresses~\cite{Microchip_PFSoC_PU_2025}).
+\end{itemize}
+%
+Section~\ref{sec:riscv_blinky} exercises these two boot modes.
+
+%------------------------------------------------------------------------------
+% PolarFire SoC MSS Boot Modes
+%------------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{minipage}{\textwidth}
+    \begin{center}
+    \includegraphics[width=\textwidth]
+    {figures/pfs_mss_boot_modes.png}\\
+    (a) Boot modes
+    \end{center}
+  \end{minipage}
+  \vskip10mm
+  \begin{minipage}{0.49\textwidth}
+    \begin{center}
+    \includegraphics[width=0.45\textwidth]
+    {figures/pfs_mss_boot_mode_0.png}\\
+    (b) Boot mode 0: Idle boot flow
+    \end{center}
+  \end{minipage}
+  \hfil
+  \begin{minipage}{0.49\textwidth}
+    \begin{center}
+    \includegraphics[width=0.45\textwidth]
+    {figures/pfs_mss_boot_mode_1.png}\\
+    (c) Boot mode 1: Non-secure boot flow
+    \end{center}
+  \end{minipage}
+  \caption{PolarFire SoC MSS boot modes.}
+  \label{fig:pfs_mss_boot_modes}
+\end{figure}
+% -----------------------------------------------------------------------------
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Clocks
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=\textwidth]
+    {figures/pfs_disco_mss_clocks}
+  \end{center}
+  \caption{PolarFire SoC Discovery Kit MSS clock configuration with 125MHz reference clock.}
+  \label{fig:pfs_disco_mss_clocks}
+\end{figure}
+% -----------------------------------------------------------------------------
+
+% -----------------------------------------------------------------------------
+\subsection{Clocks}
+% -----------------------------------------------------------------------------
+
+The PolarFire SoC Discovery Kit has two external clock
+sources (p5 and p13~\cite{Microchip_DISCO_UG_2025}):
+%
+\begin{itemize}
+\item 125MHz MSS Reference clock (DSC1123BL5-125.0000)
+
+The \href{https://www.microchip.com/en-us/product/DSC1123}{DSC1123} is a MEMS
+oscillator with a startup time of 5ms (max).
+
+\item 50 MHz Oscillator (DSC1001DL5-050.0000)
+
+The \href{https://www.microchip.com/en-us/product/DSC1001}
+{DSC1001} is a CMOS oscillator with a startup time of 1.3ms (max).
+
+\end{itemize}
+%
+The MCP121 voltage supervisor power-on-reset time of 120ms
+is sufficient for the oscillators to be stable when used by the PolarFire SoC.
+%
+Figure~\ref{fig:pfs_disco_mss_clocks} shows the MSS Configurator view of the
+PolarFire Discovery Kit clocks using the
+\href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design/blob/main/script_support/MPFS_DISCOVERY_KIT_MSS.cfg}
+{reference design configuration}.
+%
+\begin{itemize}
+\item The RISC-V processor clocks are configured for 600MHz
+\item The AXI and L2 cache is configured for 300MHz
+\item The AHB/APB bus configured for 150MHz
+\item The DDR clock is configured for 800MHz (1600Mbps data rate)
+\item The SGMII interface is configured for 625MHz (1.25Gbps serial rate)
+\end{itemize}
+

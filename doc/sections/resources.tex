@@ -1,0 +1,233 @@
+% =============================================================================
+\section{Resources}
+% =============================================================================
+\label{sec:resources}
+
+This section contains resources found during the development of this tutorial.
+
+\begin{itemize}
+% ---------------------------------------
+\item \textbf{Microchip Github}
+% ---------------------------------------
+%
+\begin{itemize}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/README.md}
+{PolarFire SoC Documentation Index}
+%
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/knowledge-base/polarfire-soc-software-tool-flow.md}
+{PolarFire SoC Software Tool Flow}
+%
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/reference-designs-fpga-and-development-kits/mpfs-discovery-kit-embedded-software-user-guide.md}
+{MPFS Discovery Kit Embedded Software User Guide}
+%
+\begin{itemize}
+\item
+This repo contains the high-resolution images from the User Guide (Rev 2 hardware).
+\item
+This repo contains instructions on updating the kit to support Linux and bare-metal applications.
+\item
+MMUART1 (1st COM port) displays the Hart Software Service (HSS) boot messages.
+\item
+MMUART4 (2nd COM port) displays U-Boot and Linux messages.
+\item
+The repo contains udev rules for the FTDI channels
+\end{itemize}
+%
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-software-project-structure.md}
+{Bare Metal Software Projects Structure}
+%
+\end{itemize}
+%
+% ---------------------------------------
+\item \textbf{Microchip YouTube Channel}
+% ---------------------------------------
+%
+\begin{itemize}
+\item \href{https://www.youtube.com/user/MicrochipTechnology}{MicrochipTechnology} YouTube page
+\item The Hugh Breslin videos are informative
+\item
+\href{https://www.youtube.com/playlist?list=PLtQdQmNK_0DSh2Mr18m8BNYRTK3sxeAPX}
+{Bare Metal Examples} Playlist (6 videos)
+\end{itemize}
+
+% ---------------------------
+\item \textbf{Discovery Kit}
+% ---------------------------
+%
+\begin{itemize}
+\item
+\href{https://www.youtube.com/watch?v=GmitNBnw22I}
+{PolarFire SoC Discovery Kit - Your Low-Cost Entry to RISC-V and FPGA Technology}
+\begin{itemize}
+\item
+Tim McCarthy, Microchip
+\item
+11m35s total time
+\item
+This video is the introduction linked from the kit web page.
+\item The kit shown in the video must be a Rev 1, as it uses a green screw
+terminal for the alternate 5V power input, rather than the power socket used
+on the Rev 2.
+\item 2m55s: The factory restore process
+\item The video shows factory restore from \verb+mpfs_an5165_v2023p2_df.zip+
+\item The latest factor restore release is
+\href{https://ww1.microchip.com/downloads/aemDocuments/documents/FPGA/SOCDesignFiles/mpfs_an5165_v2024p1_df.zip}
+{\texttt{mpfs\_an5165\_v2024p1\_df.zip}}
+\item 3m26s: FPExpress v2023.2 is used
+\item Create a new FPExpress project for \verb+top.job+
+\item Save the project in the same folder as the job file
+\item Run PROGRAM to update the kit
+\item Run VERIFY to show the kit now matches the job file
+\item (Optional) Power cycle and run VERIFY
+\item 4m30s: DSP FIR filter demo starts
+\item Install the filter GUI and interact with the design
+\item The filter GUI used the COM port associated with the fabric FTDI USB-UART
+\item The GUI includes a text view of the input and output values
+\end{itemize}
+
+\clearpage
+\item
+\href{https://www.adiuvoengineering.com/post/microchip-discovery-board}
+{Adam Taylor - Discovery Kit Bare-Metal Example} (1/2025)
+\begin{itemize}
+\item
+The article uses the MSS Configurator file for the Discovery Kit
+reference hardware design, but modifies it to delete all but the GPIO fabric
+interface (GPIO 2). He makes a comment about this being necessary \emph{as
+we need something in the fabric to ensure Synplify correctly synthesises the
+project}. This comment likely reflects what was observed when I created
+a processor-only system, in that Synplify fails as it has no nets to route.
+\item
+The design does not use the PFOSC\_INIT\_MONITOR component for reset
+generation, rather he ties the reset input high.
+\item Uses the \verb+mfps-gpio-interrupt+ bare-metal example for
+the SoftConsole reference software design.
+\item The article includes screen shots of the Hart 0 (e51) and 1 (u54\_1) UART console outputs.
+\end{itemize}
+%
+\item
+\href{https://www.controlpaths.com/2024/07/21/getting-started-mpfs-discovery}
+{Pablo Trujillo - Getting started with the MPFS Discovery Kit} (7/2024)
+\begin{itemize}
+\item
+The article uses the MSS Configurator file for the Discovery Kit
+reference hardware design, but modifies it to disable some of the
+interfaces (eg., the FIC interfaces).
+\item
+The MSS SmartDesign component instance screen shots show: REFCLK,
+MMUART 1 and 4, SD card, SPI, DDR, GPIO\_1[9,20], and GPIO\_2[6:0].
+\item GPIO\_2[6:0] are used to control LED[7:1].
+\item The reset input is tied high.
+\item Unused inputs are tied high, and unconnected outputs are marked as unused.
+\item Uses the \verb+mfps-gpio-interrupt+ bare-metal example for
+the SoftConsole reference software design.
+\item The article includes a screen shot of the Hart 1 (u54\_1) UART console output.
+\end{itemize}
+%
+\item
+\href{https://www.hackster.io/news/hackster-s-fpgadventures-hands-on-with-the-low-cost-microchip-polarfire-soc-discovery-kit-e92d6224691d}
+{Gareth Halfacree - Hands-On with the Low-Cost Microchip PolarFire SoC Discovery Kit}
+\begin{itemize}
+\item
+This article summarizes the Discovery Kit hardware and software features.
+\item
+Gareth has another series of articles on the
+\href{https://www.hackster.io/news/hackster-s-fpgadventures-unboxing-and-testing-the-microchip-polarfire-soc-icicle-kit-9f194a9639f6}
+{PolarFire SoC Icicle Kit} (there are links to the whole series at the end of the first article).
+\item Starware
+\end{itemize}
+%
+\end{itemize}
+
+% ---------------------------------------
+\item \textbf{Numato PolarFire SoC SOM}
+% ---------------------------------------
+
+\href{https://numato.com/kb/hello-world-project-on-eaglecore-polarfire-soc-som}
+{Hello World} project targeting the EagleCore PolarFire SoC SOM (3/2025)
+%
+\begin{itemize}
+\item Uses MSS Configurator to configure the MSS subsystem
+\item Uses Libero SoC to create a SmartDesign containing the MSS\newline
+(the SmartDesign screen shot shows only UART and DDR dedicated pins), the
+reset is exported to the top-level and assigned to pin H7, and the
+design is synthesized
+\item Uses SoftConsole to import the \verb+mpfs-mmuart-interrupt+ example
+\item Update the project with the Numato PolarFire SoC XML file
+\item Change the design source to reduce the number of processors used, to just the E51 core
+\item Replace the E51 code with their custom code, which sends Hello World
+using the polled transmit routine
+\item The build configuration targets the \emph{eNVM Scratchpad-Release}
+\item The application is programmed using non-secure boot mode 1
+\end{itemize}
+
+\newpage
+% ---------------------------------------
+\item \textbf{PolarFire SoC Icicle Kit}
+% ---------------------------------------
+%
+\begin{itemize}
+%
+\item AC492: Running bare-metal applications~\cite{Microchip_AC492_2020}
+
+This is an out-of-date application note written for the Icicle Kit. It describes
+how to use System Services for reading the Device Serial Number and the Device Design ID.
+It describes running bare-metal MicroPython (from DDR on a U54 RISC-V core).
+%
+\item
+\href{https://www.controlpaths.com/2021/12/20/getting-started-with-microchips-fpga-icicle-kit-and-polarfire-soc}
+{Pablo Trujillo - Getting started with Microchip's FPGA Icicle Kit and PolarFire SoC} (12/2022)
+%
+\begin{itemize}
+\item Describes how to build the Icicle kit with the hardwre reference design.
+\item Describes how to build the Hart Software Services (HSS) image.
+\item Downloads and programs the reference design 2021.11 release zip file\newline
+(contains the bitstream and HSS job file).
+\item Downloads the Yocto SD card image, creates the card, and boots Linux.
+\item Comments that the \verb+devmem+ tool is not available in the default Linux image.
+\item Describes how to rebuild Linux using Yocto to include \verb+devmem+.
+\end{itemize}
+%
+\item
+\href{https://www.controlpaths.com/2022/10/10/creating-a-custom-polarfire-soc-design}
+{Pablo Trujillo - Creating a custom PolarFire SoC design} (10/2022)
+%
+\begin{itemize}
+\item
+Shows how to create a basic hardware design targeting the Icicle kit.
+\item
+Contains an application that uses the Monitor Hart 0 (E51) and Hart 1 (U54\#1).
+\item
+The SmartDesign MSS screen shot shows: REFCLK, 4 MMUARTs, 4 LEDs, and SW4 connected
+to the processor reset.
+\item
+Develops a bare-metal application based on \verb+mpfs-mmuart-interrupt+.
+\item
+Replaces the MSS XML in the bare-metal design with that created by the custom hardware design.
+The reference design contains a Python script that parses the XML file to generate the
+software support files.
+\item
+Creates customized application code that uses the E51 to read from the UART and then wake up the U54\#1 core.
+\end{itemize}
+%
+\item
+\href{https://www.controlpaths.com/2023/03/26/running-ubuntu-in-the-icicle-kit}
+{Pablo Trujillo - Running Ubuntu in the Microchip's Icicle Kit} (3/2023)
+%
+\begin{itemize}
+\item
+Shows how to program the Icicle Kit with the hardware reference design, and how
+to configured the kit to boot Ubuntu.
+\end{itemize}
+%
+\end{itemize}
+
+\end{itemize}
+
+
+
+

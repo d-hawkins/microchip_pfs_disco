@@ -1,0 +1,92 @@
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+\label{sec:intro}
+
+This tutorial demonstrates hardware and software development for the Microchip
+PolarFire SoC
+\href{https://www.microchip.com/en-us/development-tool/mpfs-disco-kit}
+{Discovery Kit}.
+%
+This tutorial was created under Windows 10 using
+\href{https://www.microchip.com/en-us/products/fpgas-and-plds/fpga-and-soc-design-tools/fpga/libero-software-later-versions}
+{Libero SoC 2025.1} and
+\href{https://www.microchip.com/en-us/products/fpgas-and-plds/fpga-and-soc-design-tools/soc-fpga/softconsole}
+{SoftConsole 2022.2}\footnote{Latest releases on 7/27/2025.}.
+%
+The Microchip PolarFire SoC Discovery Kit features:
+%
+\begin{itemize}
+%
+\item \textbf{Microchip PolarFire SoC}~\cite{Microchip_PFSoC_DS_2025}
+\begin{itemize}
+\item Part number: MPFS095T-1FCSG325E
+\item 93,516 logic elements (4-input LUTs plus register)
+\item 292 Math Blocks (18-bit pre-adder, 18 $\times$ 19-bit multiply, 48-bit accumulator)
+\item 308 $\times$ 20kbit LSRAM
+\item 876 $\times$ 768-bit uSRAM
+\end{itemize}
+%
+\item \textbf{Clocks}
+\begin{itemize}
+\item 125MHz LVDS reference clock (for the MSS)
+\item 50MHz single-ended fabric clock
+\item 2MHz and 160MHz internal oscillators
+\end{itemize}
+%
+\item \textbf{Memory}
+\begin{itemize}
+\item 1GB 16-bit DDR4 memory
+\item eMMC
+\item QSPI Flash
+\end{itemize}
+%
+\item \textbf{Interfaces}
+\begin{itemize}
+\item FTDI FT4232H USB interface for JTAG (Embedded FlashPro5) and 3 UARTs
+\item 1Gb Ethernet (SGMII connection to VSC8221 PHY and RJ45 connector)
+\item microSD card interface
+\item mikroBUS connector
+\item 40-pin Raspberry Pi 4 interface
+\item Raspberry Pi MIPI RX connector
+\item 10-pin 7-segment display connector
+\item 8 LEDs (4 red and 4 yellow)
+\item 8 DIP switches
+\item 2 push-button switches
+\end{itemize}
+%
+\end{itemize}
+%
+Figure~\ref{fig:pfs_disco_photos} shows photos of the PolarFire SoC
+Discovery Kit\footnote{The images are from the
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/reference-designs-fpga-and-development-kits/mpfs-discovery-kit-embedded-software-user-guide.md}
+{Discovery Kit Embedded Software User Guide} github.}.
+%
+The Microchip PolarFire SoC Discovery Kit contains a smaller device than the
+\href{https://www.microchip.com/en-us/development-tool/mpfs-icicle-kit-es}
+{Icicle Kit} (MPFS250T-FCVG484EES) or
+\href{https://www.microchip.com/en-us/development-tool/MPFS250-VIDEO-KIT}
+{Video Kit} (MPFS250TS-1FCG1152I), but a larger device than the
+\href{https://www.beagleboard.org/boards/beaglev-fire}{BeagleV-Fire} (MPFS025T).
+
+
+% -----------------------------------------------------------------------------
+% PolarFire Discovery Kit images
+% -----------------------------------------------------------------------------
+%
+% The images were cropped and scaled differently. A picture environment was
+% used so that the images could be aligned.
+%
+\setlength{\unitlength}{1mm}
+\begin{figure}[p]
+  \begin{picture}(120,180)(0,0)
+    \put(0, 100){\includegraphics[width=\textwidth]
+    {figures/pfs_disco_top.pdf}}
+    \put(3,   5){\includegraphics[width=0.9\textwidth]
+    {figures/pfs_disco_bottom.pdf}}
+    \put(60, 95){(a) Top view}
+    \put(60,  0){(b) Bottom}
+  \end{picture}
+  \caption{PolarFire SoC Discovery Kit.}
+  \label{fig:pfs_disco_photos}
+\end{figure}

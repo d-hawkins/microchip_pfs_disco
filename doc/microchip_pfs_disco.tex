@@ -1,0 +1,241 @@
+% -----------------------------------------------------------------------------
+% microchip_pfs_disco.txt
+%
+% 7/25/2025 D. W. Hawkins (dwh@caltech.edu)
+%
+% Microchip PolarFire SoC Discovery Kit Tutorial.
+%
+% -----------------------------------------------------------------------------
+%
+% -----------------------------------------------------------------------------
+% Document preamble
+% -----------------------------------------------------------------------------
+%
+\documentclass[10pt,twoside]{article}
+
+% Math symbols
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Headers/Footers
+\usepackage{fancyhdr}
+
+% Colors
+% See https://en.wikibooks.org/wiki/LaTeX/Colors
+\usepackage[dvipsnames]{xcolor}
+
+% Importing and manipulating graphics
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{pdflscape}
+
+% Misc packages
+\usepackage{verbatim}
+\usepackage{dcolumn}
+\usepackage{ifpdf}
+\usepackage{enumerate}
+
+% PDF Bookmarks and hyperref stuff
+\usepackage[
+  bookmarks=true,
+  bookmarksnumbered=true,
+  colorlinks=true,
+  filecolor=blue,
+  linkcolor=blue,
+  urlcolor=blue,
+  hyperfootnotes=true
+  citecolor=blue
+]{hyperref}
+
+% Improved citation handling
+% (include after the hyperref stuff)
+\usepackage{cite}
+
+% Pretty printing code
+\usepackage{listings}
+
+% Source code listings:
+% https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings
+% Defining new colors:
+% https://en.wikibooks.org/wiki/LaTeX/Colors
+\usepackage{xcolor}
+\colorlet{keyword}{blue}
+%\colorlet{comment}{green!70!black}
+\colorlet{comment}{OliveGreen}
+\colorlet{string}{green!50!blue}
+\lstdefinestyle{vhdl}{
+  language         = VHDL,
+  basicstyle       = \small\ttfamily,
+  keywordstyle     = \color{keyword}\bfseries,
+  commentstyle     = \color{comment},
+  stringstyle      = \color{string},
+  tabsize          = 4,
+  showstringspaces = false
+}
+% Verilog syntax highlighting
+\lstdefinestyle{verilog}{
+  language         = Verilog,
+  basicstyle       = \small\ttfamily,
+  keywordstyle     = \color{keyword}\bfseries,
+  commentstyle     = \color{comment},
+  stringstyle      = \color{string},
+  tabsize          = 4,
+  showstringspaces = false
+}
+% C code syntax highlighting
+\lstdefinestyle{c}{
+	language         = C,
+	basicstyle       = \small\ttfamily,
+	keywordstyle     = \color{keyword}\ttfamily,
+	commentstyle     = \color{comment},
+	stringstyle      = \color{string},
+	tabsize          = 4,
+	showstringspaces = false
+}
+
+% -----------------------------------------------------------------------------
+% Setup the margins
+% -----------------------------------------------------------------------------
+% Footer Template
+
+% Set left margin - The default is 1 inch, so the following
+% command sets a 1.25-inch left margin.
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.25in}
+
+% Set width of the text - What is left will be the right
+% margin. In this case, right margin is
+% 8.5in - 1.25in - 6in = 1.25in.
+\setlength{\textwidth}{6in}
+
+% Set top margin - The default is 1 inch, so the following
+% command sets a 0.75-inch top margin.
+%\setlength{\topmargin}{-0.25in}
+\setlength{\topmargin}{-0.2in}
+
+% Set height of the header
+\setlength{\headheight}{0.3in}
+
+% Set vertical distance between the header and the text
+\setlength{\headsep}{0.2in}
+
+% Set height of the text
+\setlength{\textheight}{8.5in}
+
+% Set vertical distance between the text and the
+% bottom of footer
+\setlength{\footskip}{0.4in}
+
+% -----------------------------------------------------------------------------
+% Allow floats to take up more space on a page.
+% -----------------------------------------------------------------------------
+
+% see page 142 of the Companion for this stuff and the
+% documentation for the fancyhdr package
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+% dont make this too small
+\renewcommand{\floatpagefraction}{0.35}
+\setcounter{totalnumber}{5}
+
+% Make sure the top/bottom rules appear on the page
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% -----------------------------------------------------------------------------
+% Set up the header/footer
+% -----------------------------------------------------------------------------
+%
+% First page
+% - set the head/foot rule width to zero to hide them
+\fancypagestyle{plain}{
+	\renewcommand{\headrulewidth}{0pt}
+	\renewcommand{\footrulewidth}{0pt}
+	\fancyhf{}
+	\fancyfoot{}
+}
+
+% All other pages
+\lhead{PFS-DISCO Tutorial}
+\chead{}
+\rhead{\today}
+\lfoot{}
+\cfoot{}
+\rfoot{\thepage}
+
+% =============================================================================
+% Document contents
+% =============================================================================
+%
+\begin{document}
+\title{Microchip PolarFire SoC Discovery Tutorial}
+\author{D. W. Hawkins (dwh@caltech.edu)}
+\date{\today}
+
+% Title page
+\maketitle
+
+% Table of contents
+\tableofcontents
+
+% Switch to the fancy page style
+\pagestyle{fancy}
+
+% Start the first section on an odd page
+%\cleardoublepage
+\clearpage
+
+% =============================================================================
+% Main Document
+% =============================================================================
+%
+\input{sections/intro.tex}
+\clearpage
+\input{sections/getting_started.tex}
+\clearpage
+\input{sections/power.tex}
+\clearpage
+\input{sections/fabric_blinky.tex}
+\clearpage
+\input{sections/riscv_blinky.tex}
+\clearpage
+\input{sections/future.tex}
+
+\clearpage
+\appendix
+\input{sections/resources.tex}
+\clearpage
+% -----------------------------------------------------------------------------
+\section{Revision History}
+% -----------------------------------------------------------------------------
+%
+\begin{table}[h]
+%\caption{Revision History}
+\begin{center}
+\begin{tabular}{|c|p{100mm}|}
+\hline
+Date & Description\\
+\hline\hline
+&\\
+07/25/2025  & Created the document.\\
+07/29/2025  & Added the fabric blinky LED design.\\
+08/02/2025  & Added the RISC-V blinky LED design.\\
+&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+%\clearpage
+%------------------------------------------------------------------------------
+% Do the bibliography
+%------------------------------------------------------------------------------
+%
+% Note, you can't have spaces in the list of bibliography files
+%
+\bibliography{sections/refs}
+\bibliographystyle{plain}
+
+%------------------------------------------------------------------------------
+\end{document}

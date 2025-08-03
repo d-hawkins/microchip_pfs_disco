@@ -1,0 +1,377 @@
+% =============================================================================
+\section{Getting Started}
+% =============================================================================
+\label{sec:getting_started}
+
+The Microchip PolarFire SoC
+\href{https://www.microchip.com/en-us/development-tool/mpfs-disco-kit}
+{Discovery Kit} web page has getting started resources:
+%
+\begin{itemize}
+\item Discovery Kit Quick Start Guide~\cite{Microchip_DISCO_QS_2024}
+
+The Quick Start Guide contains photos of the kit that identify the components
+on the board (photos are of the Rev 1 design), and provide the recommended
+jumper settings. The guide details how to use the factory default FIR filter
+and FFT demonstration design and FIR filter Windows GUI.
+
+\item Discovery Kit User Guide~\cite{Microchip_DISCO_UG_2025}
+
+The User Guide contains photos of the kit that identify the components
+on the board (photos are of the Rev 2 design), and provide the recommended
+jumper settings. The User Guide contains details on the components and
+the interfaces. Appendix B contains tables of pin assignments, but no recommended
+settings, eg., I/O standard, drive strength, or slew rate.
+
+\item Discovery Kit Schematic~\cite{Microchip_DISCO_SCH_2023}
+
+The schematic provides critical details on bank voltages, pin assignments,
+device reset generation, clocks, and interface connections.
+
+The Microchip web site does not include the Cadence Capture design file (.DSN)
+file. This file is provided with the Video Kit and is useful for automated
+pin and net name checking (using Cadence Capture Tcl scripts). The design
+file has been requested from Microchip.
+
+\item FIR filter and FFT demonstration design~\cite{Microchip_AN5165_2024}
+
+The factory default design. The design does not include details on the UART
+communications protocol or a bit-true model of the signal processing logic.
+The design does include a testbench, so it would be possible to reverse-engineer
+the UART protocol and to develop a bit-true model.
+
+\item Libero SoC design flow~\cite{Microchip_AN5282_2024}
+
+Demonstrates a Libero SoC SmartDesign for an AND gate. The AND gate inputs are
+connected to the two push button switches, while the output is connected to
+LED1.
+
+\textcolor{magenta}{This document does not demonstrate how to instantiate the RISC-V processors.}
+
+
+\item \href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design}{Discovery Kit reference design}
+
+\textcolor{red}{TODO:} Add a chapter exploring the designs in this repo.
+
+This is the hardware reference design on which the bare-metal applications can run.
+
+\item \href{https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples}{Bare-metal examples}
+
+\textcolor{red}{TODO:} Add a chapter exploring the designs in this repo.
+
+\item Linux examples
+\item Links to videos
+
+See Appendix~\ref{sec:resources}.
+
+\end{itemize}
+%
+This tutorial references these resources (and others).
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Factory Restore}
+% -----------------------------------------------------------------------------
+\label{sec:factory_restore}
+
+The Discovery Kit FIR filter example design is programmed (or verified) as follows:
+%
+\begin{enumerate}
+\item Download and unzip the FIR filter design~\cite{Microchip_AN5165_2024}
+%
+\begin{itemize}
+\item For example, unzip to
+\begin{verbatim}
+C:\temp\mpfs_an5165_v2024p1_df
+\end{verbatim}
+\end{itemize}
+%
+\item Power the Discovery Kit using a USB-C cable
+\item Start \emph{FPExpress v2025.1}
+\item Select \emph{Project$\rightarrow$New Job Project}
+\item \emph{Create New Job Project} dialog:
+%
+\begin{itemize}
+\item For \emph{Import FlashPro Express job file}, browse
+and select the job file, eg.,
+\begin{verbatim}
+C:\temp\mpfs_an5165_v2024p1_df\Programming_Job
+\end{verbatim}
+\item For \emph{FlashPro Express job project location}, browse
+and select the directory as the job file.
+\item Click \emph{OK}
+\end{itemize}
+%
+\item \textbf{Program}
+\begin{itemize}
+\item The action pull-down menu defaults to \emph{PROGRAM}
+\item Click the \emph{RUN} button to run the \emph{PROGRAM} action
+\item Figure~\ref{fig:pfs_disco_fpexpress}(a) shows the FlashPro Express GUI after program
+\end{itemize}
+%
+\item \textbf{Verify}
+\begin{itemize}
+\item Change the action pull-down menu to \emph{VERIFY}
+\item Click the \emph{RUN} button to run the \emph{VERIFY} action
+\item Figure~\ref{fig:pfs_disco_fpexpress}(b) shows the FlashPro Express GUI after verify
+\end{itemize}
+%
+\item Save and exit the FlashPro Express application
+\end{enumerate}
+%
+The Discovery Kit User Guide has details on the embedded FlashPro5
+programmer (App. A~\cite{Microchip_DISCO_UG_2025}).
+
+\vskip5mm
+\begin{center}
+\fbox{\parbox{0.85\linewidth}{
+\textbf{\textcolor{red}{WARNING:}}\newline
+The FIR filter example design uses only the FPGA fabric, so cannot
+be used for RISC-V software development!}}
+\end{center}
+
+% -----------------------------------------------------------------------------
+% FlashPro Express
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.95\textwidth]
+    {figures/pfs_disco_fpexpress_program.png}\\
+    (a) PROGRAM\\
+    \vskip5mm
+    \includegraphics[width=0.95\textwidth]
+    {figures/pfs_disco_fpexpress_verify.png}\\
+    (b) VERIFY
+  \end{center}
+  \caption{FlashPro Express GUI after program and verify.}
+  \label{fig:pfs_disco_fpexpress}
+\end{figure}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% FIR Filter GUI screen shots
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=0.85\textwidth]
+    {figures/an5165_filter_gui_a.png}
+    \vskip5mm
+  \end{center}
+  \caption{FIR filter GUI: filter coefficients.}
+  \label{fig:an5165_filter_gui_a}
+\end{figure}
+
+% -----------------------------------------------------------------------------
+\subsection{FIR Filter Demonstration}
+% -----------------------------------------------------------------------------
+
+%
+\begin{enumerate}
+\item Install the FIR Filter GUI
+%
+\begin{itemize}
+\item Run the installer:
+\begin{verbatim}
+C:\temp\mpfs_an5165_v2024p1_df\GUI_Installer\Volume\setup.exe
+\end{verbatim}
+\item Install directories:
+\begin{itemize}
+\item GUI: \verb+C:\software\Microchip\DISCO-KIT\FIR_Filter_GUI+
+\item National Instruments: \verb+C:\Program Files (x86)\National Instruments+
+\end{itemize}
+\item The software can be uninstalled using Windows add/remove programs
+\end{itemize}
+%
+\item Power the Discovery Kit using a USB-C cable
+%
+\item Run the FIR Filter GUI
+\begin{itemize}
+\item \emph{Start Menu$\rightarrow$Filter\_GUI}
+\item Click on the link icon and establish the connection to the kit
+\item Click on \emph{Generate Filter}
+\item Figure~\ref{fig:an5165_filter_gui_a} shows the filter coefficients
+\item Click on \emph{Generate Signal}
+\item Figure~\ref{fig:an5165_filter_gui_b} shows the input signal
+\item Click on the play button
+\item Figure~\ref{fig:an5165_filter_gui_c} shows the filtered output signal
+\end{itemize}
+\end{enumerate}
+%
+AN5165 contains additional screen shots and details~\cite{Microchip_AN5165_2024}.
+
+\clearpage
+% -----------------------------------------------------------------------------
+% FIR Filter GUI screen shots
+% -----------------------------------------------------------------------------
+%
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.85\textwidth]
+    {figures/an5165_filter_gui_b.png}
+    \vskip5mm
+  \end{center}
+  \caption{FIR filter GUI: input signal.}
+  \label{fig:an5165_filter_gui_b}
+\end{figure}
+
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.85\textwidth]
+    {figures/an5165_filter_gui_c.png}
+    \vskip5mm
+  \end{center}
+  \caption{FIR filter GUI: output signal.}
+  \label{fig:an5165_filter_gui_c}
+\end{figure}
+
+\clearpage
+% -----------------------------------------------------------------------------
+% Discovery Kit Reference Designs
+% -----------------------------------------------------------------------------
+%
+\begin{table}
+\caption{Discovery Kit reference hardware designs.}
+\label{tab:pfs_disco_hardware_designs}
+\begin{center}
+\begin{tabular}{|l|p{100mm}|}
+\hline
+Script Argument & Description\\
+\hline\hline
+&\\
+(no argument)   & Discovery Kit reference hardware design\\
+FIR\_DEMO       & AN5165 Filter demonstration\\
+BFM\_SIMULATION & SmartDesign testbench with FIC interface BFMs\\
+I2C\_LOOPBACK   & I2C loopback via the fabric\\
+MIV\_RV32\_CFG1 & Mi-V softcore RISC-V example 1\\
+MIV\_RV32\_CFG2 & Mi-V softcore RISC-V example 2\\
+MIV\_RV32\_CFG3 & Mi-V softcore RISC-V example 3\\
+&\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+% -----------------------------------------------------------------------------
+\subsection{Discovery Kit Reference Hardware Designs}
+% -----------------------------------------------------------------------------
+
+The Discovery Kit reference hardware designs are available on github:
+%
+\begin{quote}
+\href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design}
+{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design}
+\end{quote}
+%
+Table~\ref{tab:pfs_disco_hardware_designs} shows the different hardware designs.
+The hardware designs are built using a Libero Tcl script, with the different
+designs selected based on a script argument. The repository README.md
+is recommended reading. The README.md contains a block diagram of the
+reference hardware design, and information on building the design variants.
+
+Section~\ref{sec:riscv_blinky} demonstrates bare-metal software running on the
+reference hardware design.
+
+\vskip10mm
+\begin{center}
+\fbox{\parbox{0.85\linewidth}{
+\textbf{\textcolor{red}{IMPORTANT:}}\newline
+The Discovery Kit must be programmed with the reference hardware design
+before using the bare-metal or Linux software examples.}}
+\end{center}
+\vskip10mm
+
+% -----------------------------------------------------------------------------
+\subsection{Bare-Metal Software Examples}
+% -----------------------------------------------------------------------------
+
+The PolarFire SoC bare-metal software examples are available on github:
+%
+\begin{quote}
+\href{https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples}
+{https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples}
+\end{quote}
+%
+The bare-metal examples were developed for the PolarFire SoC Icicle Kit.
+%
+The examples ported to the Discovery Kit are:
+%
+\begin{itemize}
+\item mss-gpio: \href{https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/driver-examples/mss/mss-gpio/mpfs-gpio-interrupt}{mpfs-gpio-interrupt}
+\item mss-mmuart: \href{https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/driver-examples/mss/mss-mmuart/mpfs-mmuart-interrupt}{mpfs-mmuart-interrupt}
+\item mss-rtc: \href{https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/driver-examples/mss/mss-rtc/mpfs-rtc-time}{mpfs-rtc-time}
+\end{itemize}
+%
+Section~\ref{sec:riscv_blinky} demonstrates the use of the GPIO and MMUART
+examples.
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Linux}
+% -----------------------------------------------------------------------------
+
+\noindent\textcolor{red}{TODO:}
+\begin{itemize}
+\item Create a micro-SD card and boot Linux.
+\item Describe the boot sequence:
+\begin{itemize}
+\item HSS = First-stage boot-loader
+\item U-Boot = Second-stage bootloader
+\item Linux
+\end{itemize}
+\item Blink the LEDs:
+\begin{itemize}
+\item Using HSS commands
+\item Using U-Boot commands
+\item Using /dev/mem and a Linux application
+\end{itemize}
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+\subsection{PolarFire SoC Documentation}
+% -----------------------------------------------------------------------------
+
+The PolarFire SoC github organization and documentation repository have a
+lot of information:
+%
+\begin{itemize}
+\item
+\href{https://github.com/polarfire-soc}
+{https://github.com/polarfire-soc}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation}
+{https://github.com/polarfire-soc/polarfire-soc-documentation}
+\end{itemize}
+%
+Recommended reading:
+%
+\begin{itemize}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/tree/master/bare-metal-embedded-software}
+{bare-metal-embedded-software}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-software-project-structure.md}
+{bare-metal-software-project-structure.md}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-driver-user-guides}
+{bare-metal-driver-user-guides}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/reference-designs-fpga-and-development-kits/mpfs-discovery-kit-embedded-software-user-guide.md}
+{mpfs-discovery-kit-embedded-software-user-guide.md}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/knowledge-base/boot-modes/boot-modes-fundamentals.md}
+{boot-modes-fundamentals.md}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/reference-designs-fpga-and-development-kits/updating-linux-in-mpfs-kit.md}
+{updating-linux-in-mpfs-kit.md}
+\end{itemize}
+%
+Support:
+%
+\begin{itemize}
+\item
+\href{https://github.com/orgs/polarfire-soc/discussions}
+{https://github.com/orgs/polarfire-soc/discussions}
+\end{itemize}
+

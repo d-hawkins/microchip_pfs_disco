@@ -1,0 +1,534 @@
+% =============================================================================
+\section{Example 2: RISC-V plus Fabric Blinky LEDs}
+% =============================================================================
+\label{sec:riscv_blinky}
+
+This section demonstrations how to use the Discovery Kit reference hardware
+and software to blink all eight LEDs using the GPIO registers in the MSS.
+%
+Figure~\ref{fig:pfs_disco_reference_hardware_design} shows the
+\href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design}
+{PolarFire SoC Discovery Kit Reference Hardware Design.}
+%
+The RISC-V Blinky LEDs application uses the following GPIOs shown in the figure:
+%
+\begin{itemize}
+\item \texttt{LED8} is driven by MSS \texttt{GPIO\_1\_9} at address \texttt{0x2012\_1000}
+\begin{itemize}
+\item
+Figure~\ref{fig:pfs_disco_reference_hardware_mss_cfg_gpio_1} shows the MSS Configurator
+GPIO\_1 settings.
+\end{itemize}
+%
+\item \texttt{LED[1:7]} are driven by the OR of:
+\begin{itemize}
+\item MSS \texttt{GPIO\_2\_[17:23]} at address \texttt{0x2012\_1000}
+\item FIC3 CoreGPIO at address \texttt{0x4000\_0000}
+\end{itemize}
+\end{itemize}
+%
+The PolarFire GPIO registers addresses are defined in the PolarFire SoC
+Registers Map which can be downloaded via the zip file linked from
+page 20 of the Technical Reference Manual~\cite{Microchip_PFSoC_TRM_2025}.
+
+% -----------------------------------------------------------------------------
+\subsection{MSS I/O pin number to MSS GPIO software API mapping}
+% -----------------------------------------------------------------------------
+
+The mapping from the LED8 schematic pin name to the MSS GPIO software API
+arguments required some analysis. The Discovery Kit schematic shows that LED8
+connects to pin number E1 with pin name \textsf{MSSIO23B2}, i.e., MSS I/O 23 in
+bank 2 (p7~\cite{Microchip_DISCO_SCH_2023}).
+%
+\begin{center}
+\textcolor{magenta}{\bf How does MSS I/O 23 in Bank 2 become GPIO\_1\_9?}
+\end{center}
+%
+The PolarFire SoC MSS has 38 general purpose I/O pads called MSS I/Os (MSSIO),
+with 14 pins in Bank 4 and 24 pins in Bank 2 (p48~\cite{Microchip_PFSoC_TRM_2025}).
+%
+The Discovery Kit schematic show how these 38 MSS I/O pins map to schematic
+symbol banks, pin numbers, and pin names, while the MSS Configurator GUI shows how
+the 38 MSS I/O pins map to banks, pin numbers, and software registers.
+%
+The Discovery Kit schematic~\cite{Microchip_DISCO_SCH_2023} page 4 shows
+that Bank 4 contains pin names \textsf{MSSIO0B4} through \textsf{MSSIO13B4},
+i.e., MSS I/Os \textsf{MSSIO[0:13]}, while page 7 shows that Bank 2
+contains pin names \textsf{MSSIO14B2} through \textsf{MSSIO37B2}, i.e.,
+MSS I/Os \textsf{MSSIO[14:37]}.
+
+Figure~\ref{fig:pfs_disco_reference_hardware_mss_cfg_gpio_1} shows the
+MSS Configurator \emph{Peripherals} tab with the GPIO\_1 settings
+selected. The first two columns of the table are \textbf{BANK} and
+\textbf{IO MUX}, where \textbf{BANK} is the bank number and \textbf{IO MUX}
+is the MSS I/O index.
+%
+The Bank 4 MSS I/O bits \textsf{MSSIO[0:13]} map to MSS GPIO control
+register bits \textsf{GPIO\_0\_[0:13]}, while
+the Bank 2 MSS I/O bits \textsf{MSSIO[14:37]} map to MSS GPIO control
+register bits \textsf{GPIO\_1\_[0:27]}. This provides the answer to
+the question posed above:
+%
+\begin{center}
+\textcolor{magenta}{\bf MSS I/O 23 in Bank 2 = GPIO\_1 bit (23 - 14) = GPIO\_1\_9}
+\end{center}
+
+% -----------------------------------------------------------------------------
+\subsection{MSS GPIO software API documentation}
+% -----------------------------------------------------------------------------
+
+The System Tick function shown in Figure~\ref{fig:pfs_disco_reference_software_design}
+blinks LED1 using the MSS GPIO software API call MSS\_GPIO\_set\_output().
+%
+The bare-metal driver API is embedded in the source code (using doxygen-like
+annotations), and the source is used to generate an API user guide in the
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation}
+{PolarFire SoC Documentation} github repo.
+%
+The
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-driver-user-guides/polarfire-soc-mss-driver-user-guides/mss-gpio/mss-gpio-driver-user-guide.md}
+{MSS GPIO Bare Metal Driver} contains the MSS GPIO software API
+documentation. Relevant API calls for the blinky LED software are:
+%
+\begin{itemize}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-driver-user-guides/polarfire-soc-mss-driver-user-guides/mss-gpio/mss-gpio-driver-user-guide.md#mss_gpio_init}
+{MSS\_GPIO\_init()}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-driver-user-guides/polarfire-soc-mss-driver-user-guides/mss-gpio/mss-gpio-driver-user-guide.md#mss_gpio_config}
+{MSS\_GPIO\_config()}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-driver-user-guides/polarfire-soc-mss-driver-user-guides/mss-gpio/mss-gpio-driver-user-guide.md#mss_gpio_set_output}
+{MSS\_GPIO\_set\_output()}
+\item
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-driver-user-guides/polarfire-soc-mss-driver-user-guides/mss-gpio/mss-gpio-driver-user-guide.md#mss_gpio_set_outputs}
+{MSS\_GPIO\_set\_outputs()}
+\end{itemize}
+
+\clearpage
+% -----------------------------------------------------------------------------
+\subsection{Reference Hardware}
+% -----------------------------------------------------------------------------
+
+The Discovery Kit Reference Hardware Design is built as follows:
+%
+\begin{enumerate}
+\item Clone the github repository
+
+For example, using Windows 10 WSL
+%
+\begin{verbatim}
+$ cd /mnt/c/github
+$ git clone https://github.com/polarfire-soc/
+      polarfire-soc-discovery-kit-reference-design.git
+\end{verbatim}
+
+\item Start Libero SoC 2025.1
+
+\item Use \emph{Project$\rightarrow$Execute Script} to select and run
+%
+\begin{verbatim}
+c:/github/polarfire-soc-discovery-kit-reference-design/
+      MPFS_DISCOVERY_KIT_REFERENCE_DESIGN.tcl
+\end{verbatim}
+
+The Libero SoC GUI updates repeatedly as the script creates the SmartDesign.
+
+The script run-time is about 5 minutes.
+
+\item Click on the green play button to run synthesis and place-and-route
+
+The synthesis and place-and-route run-time is about 10 minutes.
+
+\item Double-mouse-click on \emph{Export FlashPro Express Job}
+
+Make a note of the output job directory as this is needed with FlashPro.
+
+\item Exit Libero
+
+\end{enumerate}
+%
+Use FlashPro to program the Discovery Kit following the instructions in
+Section~\ref{sec:factory_restore}, but use the job file just created.
+After programming with the reference hardware design, the Discovery Kit
+LED8 will be on (red) and LED1 through LED7 will be off. The next
+sections describe how to blink each of the LEDs.
+
+% -----------------------------------------------------------------------------
+% Reference hardware design
+% -----------------------------------------------------------------------------
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=200mm]
+    {figures/pfs_disco_reference_hardware_design.pdf}
+  \end{center}
+  \caption{PolarFire SoC Discovery Kit reference hardware design.}
+  \label{fig:pfs_disco_reference_hardware_design}
+\end{figure}
+\end{landscape}
+% -----------------------------------------------------------------------------
+
+% -----------------------------------------------------------------------------
+% MSS Configurator for GPIO_1
+% -----------------------------------------------------------------------------
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=215mm]
+    {figures/pfs_disco_reference_hardware_mss_cfg_gpio_1.png}
+  \end{center}
+  \caption{Discovery Kit MSS Configurator GPIO\_1 settings.}
+  \label{fig:pfs_disco_reference_hardware_mss_cfg_gpio_1}
+\end{figure}
+\end{landscape}
+% -----------------------------------------------------------------------------
+
+% -----------------------------------------------------------------------------
+\subsection{Reference Software}
+% -----------------------------------------------------------------------------
+
+The Discovery Kit Reference Software Design is built as follows:
+%
+\begin{enumerate}
+\item Clone the github bare-metal examples repository
+
+For example, using Windows 10 WSL
+%
+\begin{verbatim}
+$ cd /mnt/c/github
+$ git clone https://github.com/polarfire-soc/
+      polarfire-soc-bare-metal-examples
+\end{verbatim}
+
+\item Start SoftConsole 2022.2
+
+\item Create a new Eclipse workspace, eg.,
+
+\begin{verbatim}
+C:\github\polarfire-soc-bare-metal-examples\ws-mss-gpio
+\end{verbatim}
+
+\item Close the Welcome window
+
+\item Select \emph{File$\rightarrow$Import} and then \emph{Existing Projects into Workspace}
+
+\item Click \emph{Next}
+
+\item Point the root directory at the bare-metal examples github repo
+
+\item Click \emph{Deselect All}
+
+\item Check \texttt{mpfs-gpio-interrupt}
+
+\item Click \emph{Finish}
+
+\item Use the \emph{Project Explorer} to view the source
+
+Figure~\ref{fig:pfs_disco_reference_software_design} shows the SoftConsole GUI
+with the source code for hardware thread (hart) 1, i.e., \verb+u54_1.c+.
+The source code shown in the figure is the System Tick interrupt handle,
+which blinks LED1.
+
+\item Configure the build configuration and build the project
+%
+\begin{itemize}
+\item Select \emph{Project$\rightarrow$Build Configurations$\rightarrow$Set Active}
+\item Select \emph{LIM-Debug-DiscoveryKit}
+\item This configuration uses boot mode 0
+\item Select \emph{Project$\rightarrow$Build All}
+\end{itemize}
+
+\item Download to the Discovery Kit
+%
+\begin{itemize}
+\item Power the Discovery Kit using a USB-C cable
+\item Select \emph{Run$\rightarrow$Debug Configurations}
+\item Select \emph{mpfs-gpio-interrupt hw all-harts debug}
+\item Change the build configuration from \emph{Use Active} to \emph{LIM-Debug-DiscoveryKit}
+\item Click \emph{Apply}
+\item Click \emph{Debug}
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+% Reference software design
+% -----------------------------------------------------------------------------
+%
+\begin{landscape}
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=200mm]
+    {figures/pfs_disco_softconsole_u54_systick.png}
+  \end{center}
+  \caption{PolarFire SoC Discovery Kit reference software design.}
+  \label{fig:pfs_disco_reference_software_design}
+\end{figure}
+\end{landscape}
+% -----------------------------------------------------------------------------
+
+\newpage
+\item Resume and then pause the application
+%
+\begin{itemize}
+\item The debug view opens with line 33 highlighted
+\item Press the green play button to Resume (run the application)
+\item The orange LED1 (near the corner of the board) will start blinking
+\end{itemize}
+\end{enumerate}
+%
+\textcolor{OliveGreen}{\bf Success! We have blinked LED1!}
+
+% -----------------------------------------------------------------------------
+\subsection{Software Debug}
+% -----------------------------------------------------------------------------
+
+An important part of software development is using a debugger to confirm your
+understanding of the address map of your processor and hardware design.
+%
+The fact that LED1 is blinking means that the GPIO example has configured the
+MSS GPIO registers correctly. That means we should be able to toggle all of
+the LEDs using MSS GPIO registers. We can confirm our understanding of the
+address map without writing a line of code as follows:
+%
+\begin{enumerate}
+\item In the SoftConsole GUI, click on the Suspend (pause) button
+
+\item Change the GUI to the debug perspective (click the bug on the right-hand-side)
+
+\item Click on the \emph{Memory} tab near the bottom of the GUI.
+
+This debug feature is the
+\href{https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.cdt.doc.user%2Freference%2Fcdt_u_memoryview.htm}
+{Eclipse Memory View}.
+
+\item \textbf{Toggle LED8}
+%
+\begin{itemize}
+\item The Discovery Kit schematic shows LED8 connected to MSSIO23, pin E1, Bank 2 (p7~\cite{Microchip_DISCO_SCH_2023})
+\item Open the MSS Configurator for the hardware reference design.
+\item Select the \emph{Peripherals} tab.
+\item The right-side of the GUI shows IO MUX bit 32, Bank 2, E1, configured for GPIO\_1\_9.
+\item Figure~\ref{fig:pfs_disco_reference_hardware_mss_cfg_gpio_1} shows the MSS Configurator GUI after
+selecting \emph{GPIO\_1 (Bank 2 I/Os)}.
+\item The left-side of the GUI shows the pull-down menus for GPIO\_1\_9 configured for
+\emph{MSS I/Os Bank2} with the direction set to \emph{Output}.
+\item The PolarFire SoC Registers Map contains the GPIO\_1 register definitions under
+the link GPIO\_IOBANK1\_LO.
+\item The LED8 configuration register settings are:
+\begin{itemize}
+\item CONFIG\_9[0] = EN\_OUT = 1
+\item CONFIG\_9[1] = EN\_OE\_BUF = 1
+\item 0x2012\_1024 = 0x05
+\end{itemize}
+%
+\item The LED8 output register settings (GPOUT) are:
+\begin{itemize}
+\item GPOUT[9] = 1 (LED on) or 0 (LED off)
+\item 0x2012\_1089 = 0x02 (LED on) or 0x00 (LED off)
+\end{itemize}
+%
+\item Use the Eclipse Memory View to add a new monitor at address 0x2012\_1000.
+\item Change byte 0x2012\_1024 to 0x05.
+\item LED8 will turn off.
+\item Change byte 0x2012\_1089 to 0x02 and then 0x00.
+\item LED8 will turn on and off.
+\end{itemize}
+\textcolor{OliveGreen}{\bf Success! We have blinked LED8!}
+
+\newpage
+\item \textbf{Toggle LED1 to LED7 using MSS GPIO}
+%
+\begin{itemize}
+\item Figure~\ref{fig:pfs_disco_reference_hardware_design} shows that the
+Discovery Kit hardware reference design controls LED[1:7] using
+MSS GPIO\_2\_[17:23].
+\item Open the MSS Configurator for the hardware reference design.
+\item Select the \emph{Peripherals} tab.
+\item Selecting \emph{GPIO\_2 (Fabric)} on the left-side of the GUI shows the pull-down
+menus for GPIO\_2\_17 to 23 configured for \emph{Fabric I/O} with the direction set to \emph{Output}.
+\item The PolarFire SoC Registers Map contains the GPIO\_2 register definitions under
+the link GPIO\_FAB\_LO.
+\item The LED1 to LED7 configuration register settings do not matter, as the
+hardware reference design only connects to the GPIO outputs (not the output enables).
+%
+\item The LED1 to 7 output register (GPOUT) settings are:
+\begin{itemize}
+\item GPOUT[n] = 1 (LED on) or 0 (LED off) for n = 17, 18, 19, 20, 21, 22, 23
+\item 0x2012\_208A = 0x02 (LED1 on) or 0x00 (LED1 off)
+\item 0x2012\_208A = 0x04 (LED2 on) or 0x00 (LED2 off)
+\item 0x2012\_208A = 0x08 (LED3 on) or 0x00 (LED3 off)
+\item 0x2012\_208A = 0x10 (LED4 on) or 0x00 (LED4 off)
+\item 0x2012\_208A = 0x20 (LED5 on) or 0x00 (LED5 off)
+\item 0x2012\_208A = 0x40 (LED6 on) or 0x00 (LED6 off)
+\item 0x2012\_208A = 0x80 (LED7 on) or 0x00 (LED7 off)
+\end{itemize}
+%
+\item Use the Eclipse Memory View to add a new monitor at address 0x2012\_2000.
+\item Change the byte at 0x2012\_108A to turn each of the LEDs on and off.
+\item Turn the LEDs off before performing the next steps.
+\end{itemize}
+\textcolor{OliveGreen}{\bf Success! We have blinked LED1 through LED7 using MSS GPIO!}
+
+\item \textbf{Toggle LED1 to LED7 using FIC\_3 CoreGPIO}
+%
+\begin{itemize}
+\item Figure~\ref{fig:pfs_disco_reference_hardware_design} shows that the
+Discovery Kit hardware reference design can also control LED[1:7] using
+the CoreGPIO at base address 0x4000\_0100.
+%
+\item The \href{https://ww1.microchip.com/downloads/aemDocuments/documents/FPGA/ProductDocuments/UserGuides/ip_cores/directcores/CoreGPIO_HB.pdf}{CoreGPIO}
+output data register is at offset address 0xA0, i.e., at address 0x4000\_01A0.
+%
+\item The LED1 to 7 CoreGPIO output register settings are:
+\begin{itemize}
+\item 0x4000\_01A0 = 0x01 (LED1 on) or 0x00 (LED1 off)
+\item 0x4000\_01A0 = 0x02 (LED2 on) or 0x00 (LED2 off)
+\item 0x4000\_01A0 = 0x04 (LED3 on) or 0x00 (LED3 off)
+\item 0x4000\_01A0 = 0x08 (LED4 on) or 0x00 (LED4 off)
+\item 0x4000\_01A0 = 0x10 (LED5 on) or 0x00 (LED5 off)
+\item 0x4000\_01A0 = 0x20 (LED6 on) or 0x00 (LED6 off)
+\item 0x4000\_01A0 = 0x40 (LED7 on) or 0x00 (LED7 off)
+\end{itemize}
+%
+\item Use the Eclipse Memory View to add a new monitor at address 0x4000\_0100.
+\item Change the byte at 0x4000\_01A0 to turn each of the LEDs on and off.
+\end{itemize}
+\textcolor{OliveGreen}{\bf Success! We have blinked LED1 through LED7 using CoreGPIO!}
+\end{enumerate}
+%
+Understanding how to perform direct register accesses is a powerful debug tool.
+Peripheral accesses are normally performed using a software API, eg.,
+the System Tick function shown in Figure~\ref{fig:pfs_disco_reference_software_design}
+blinks LED1 using the function call MSS\_GPIO\_set\_output().
+If blinking the other LEDs using this function call does not work, then the
+fact that direct register accesses have confirmed that all LEDs can be blinked
+shows that any problem must be with the API usage.
+
+% -----------------------------------------------------------------------------
+\subsection{Software Modification}
+% -----------------------------------------------------------------------------
+
+The manual memory edits that determined the steps needed to toggle the LEDs
+can be incorporated into the \texttt{mpfs-gpio-interrupt} by editing
+\verb+u54_1.c+ as follows:
+%
+\begin{enumerate}
+\item \textbf{Enable LED8 for output}
+
+Insert one of the following code snippets
+in the body of \verb+u54_1()+ at line 120:
+
+\begin{enumerate}
+\item Direct memory access
+\begin{lstlisting}[style=c]
+// LED8 (pin MSSIO23 = GPIO_1_(23-14) = GPIO_1_9)
+*(volatile uint32_t *)0x20121024 = 0x05;
+\end{lstlisting}
+%
+\item MSS GPIO API
+\begin{lstlisting}[style=c]
+// LED8 (pin MSSIO23 = GPIO_1_(23-14) = GPIO_1_9)
+MSS_GPIO_init(GPIO1_LO);
+MSS_GPIO_config(GPIO1_LO, MSS_GPIO_9, MSS_GPIO_OUTPUT_MODE);
+\end{lstlisting}
+\end{enumerate}
+
+\item \textbf{Modify the System Tick code to generate an LED count}
+
+Replace the System Tick code with one of the following:
+
+\begin{enumerate}
+\item Direct memory access
+\begin{lstlisting}[style=c]
+void SysTick_Handler_h1_IRQHandler(void)
+{
+    uint32_t hart_id = read_csr(mhartid);
+    static volatile uint16_t value = 0u;
+    uint8_t led, led1to7, led8;
+    uint32_t gpio1_out;
+    uint32_t gpio2_out;
+
+    if (1u == hart_id)
+    {
+        value++;
+
+        // Slow the LED count rate
+        led = (value >> 2) & 0xFF;
+
+        // LED8 and LED[1:7] settings
+        led8    = led & 1;
+//      led8    = (led >> 7) & 1;
+        led1to7 = led & 0x7F;
+
+        // LED8 output
+        gpio1_out = led8 << 9;
+        *(volatile uint32_t *)0x20121088 = gpio1_out;
+
+        // LED[1:7] output via MSS GPIO
+        gpio2_out = led1to7 << 17;
+        *(volatile uint32_t *)0x20122088 = gpio2_out;
+
+        // LED[1:7] output via CoreGPIO
+//      gpio2_out = led1to7;
+//      *(volatile uint32_t *)0x400001A0 = gpio2_out;
+    }
+}
+\end{lstlisting}
+%
+\item MSS GPIO API
+\begin{lstlisting}[style=c]
+void SysTick_Handler_h1_IRQHandler(void)
+{
+    uint32_t hart_id = read_csr(mhartid);
+    static volatile uint16_t value = 0u;
+    uint8_t led, led1to7, led8;
+    uint32_t gpio1_out;
+    uint32_t gpio2_out;
+
+    if (1u == hart_id)
+    {
+        value++;
+
+        // Slow the LED count rate
+        led = (value >> 2) & 0xFF;
+
+        // LED8 and LED[1:7] settings
+        led8    = led & 1;
+//      led8    = (led >> 7) & 1;
+        led1to7 = led & 0x7F;
+
+        // LED8 output using single-bit API
+//      MSS_GPIO_set_output(GPIO1_LO, MSS_GPIO_9, led8);
+
+        // LED8 output using multi-bit API
+        gpio1_out = led8 << 9;
+        MSS_GPIO_set_outputs(GPIO1_LO, gpio1_out);
+
+        // LED[1:7] output via MSS GPIO
+        gpio2_out = led1to7 << 17;
+        MSS_GPIO_set_outputs(GPIO2_LO, gpio2_out);
+    }
+}
+\end{lstlisting}
+%
+\end{enumerate}
+\end{enumerate}
+%
+After editing the \texttt{mpfs-gpio-interrupt} source, build the project, download in debug mode,
+and resume the application. The LEDs on the board will show an incrementing count. The count rate
+can be adjusted by editing the System Tick code to adjust the \verb+value+ right-shift value.
+The LED8 blink rate in the code above is the same as LED1, but the code can be edited to have
+LED8 blink as the MSB of an 8-bit LED count.
+
+The modifications to \texttt{mpfs-gpio-interrupt} were a bit too hacky. Closer inspection of the
+code shows several more calls to the MSS GPIO API for GPIO2. For example, the three GPIO IRQ
+handlers each contain the call
+\verb+MSS_GPIO_set_outputs(GPIO2_LO, 0u)+, and this clears all
+bits in the fabric GPIO output register. An application that needs to independently control
+the Raspberry Pi signals on GPIO\_2\_[0:16] and the LEDs on GPIO\_2\_[17:23] would need to
+perform atomic read-modify-write accesses to the GPIO2 output register, eg., see
+\href{https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/bare-metal-embedded-software/bare-metal-driver-user-guides/polarfire-soc-mss-driver-user-guides/mss-gpio/mss-gpio-driver-user-guide.md#example2}
+{Example2}.
+
