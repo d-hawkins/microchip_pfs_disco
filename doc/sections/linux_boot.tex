@@ -27,7 +27,7 @@ Download the Hardware Reference Design and HSS release:
 \href{https://www.microchip.com/en-us/development-tool/mpfs-disco-kit}
 {Microchip Discovery Kit web site}
 
-The PolarFire SoC \textbf{Discovery Kit Reference Design} links to $dots$
+The PolarFire SoC \textbf{Discovery Kit Reference Design} links to $\dots$
 
 \item
 \href{https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design}
@@ -261,8 +261,14 @@ marchid         : 0x1
 mimpid          : 0x0
 hart isa        : rv64imafdc_zicntr_zicsr_zifencei_zihpm_zca_zcd
 \end{verbatim}
-
 \end{itemize}
+%
+The default Yocto image does not include the \verb+devmem+ tool (which could
+be used to blink the LEDs).
+%
+This blog for from
+\href{https://www.controlpaths.com/2021/12/20/getting-started-with-microchips-fpga-icicle-kit-and-polarfire-soc}
+{Pablo Trujillo} shows how to update the Yocto image (for the Icicle Kit).
 
 \clearpage
 % -----------------------------------------------------------------------------
