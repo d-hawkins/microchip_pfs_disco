@@ -309,7 +309,7 @@ This debug feature is the
 \item The Discovery Kit schematic shows LED8 connected to MSSIO23, pin E1, Bank 2 (p7~\cite{Microchip_DISCO_SCH_2023})
 \item Open the MSS Configurator for the hardware reference design.
 \item Select the \emph{Peripherals} tab.
-\item The right-side of the GUI shows IO MUX bit 32, Bank 2, E1, configured for GPIO\_1\_9.
+\item The right-side of the GUI shows IO MUX bit 23, Bank 2, E1, configured for GPIO\_1\_9.
 \item Figure~\ref{fig:pfs_disco_reference_hardware_mss_cfg_gpio_1} shows the MSS Configurator GUI after
 selecting \emph{GPIO\_1 (Bank 2 I/Os)}.
 \item The left-side of the GUI shows the pull-down menus for GPIO\_1\_9 configured for
@@ -366,7 +366,7 @@ hardware reference design only connects to the GPIO outputs (not the output enab
 \end{itemize}
 %
 \item Use the Eclipse Memory View to add a new monitor at address 0x2012\_2000.
-\item Change the byte at 0x2012\_108A to turn each of the LEDs on and off.
+\item Change the byte at 0x2012\_208A to turn each of the LEDs on and off.
 \item Turn the LEDs off before performing the next steps.
 \end{itemize}
 \textcolor{OliveGreen}{\bf Success! We have blinked LED1 through LED7 using MSS GPIO!}
